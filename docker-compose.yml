@@ -1,0 +1,71 @@
+version: "3.4"
+
+networks:
+  paragon-on-prem:
+    driver: bridge
+
+services:
+  cerberus:
+    container_name: paragon-cerberus
+    image: useparagon/on-prem:latest
+    command: ./cerberus
+    env_file: ./docker.env
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${CERBERUS_PORT:-1700}:${CERBERUS_PORT:-1700}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+
+  hercules:
+    container_name: paragon-hercules
+    image: useparagon/on-prem:latest
+    command: ./hercules
+    env_file: ./docker.env
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${HERCULES_PORT:-1701}:${HERCULES_PORT:-1701}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+
+  hermes:
+    container_name: paragon-hermes
+    image: useparagon/on-prem:latest
+    command: ./hermes
+    env_file: ./docker.env
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${HERMES_PORT:-1702}:${HERMES_PORT:-1702}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+
+  api:
+    container_name: paragon-api
+    image: useparagon/on-prem:latest
+    command: ./rest-api
+    env_file: ./docker.env
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${REST_API_PORT:-1703}:${REST_API_PORT:-1703}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+
+  web:
+    container_name: paragon-web
+    image: useparagon/on-prem:latest
+    command: ./web-app
+    env_file: ./docker.env
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${WEB_APP_PORT:-1704}:${WEB_APP_PORT:-1704}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
