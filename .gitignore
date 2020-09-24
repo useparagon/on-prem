@@ -1,0 +1,5 @@
+.env
+.git
+
+.cache/**
+!.cache/.gitkeep
