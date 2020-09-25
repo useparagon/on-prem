@@ -17,9 +17,14 @@ else
   sh $ROOT_DIR/scripts/stop.sh -s $SERVICE
 fi
 
-# Copies & runs docker-compose from the `.cache` directory
-# This allows us to store secrets in `.cache/docker.env` without committing to git
+# Copies necessary files into the `.cache` directory & executes from there.
+# 
+# By default we use the docker.env` at the root of the project.
+# However if there's one stored at `.secure/docker.env`, we'll prefer that.
+# This allows us to store secrets in `.secure/docker.env` without committing to git.
 cp $ROOT_DIR/docker-compose.yml $ROOT_DIR/.cache/docker-compose.yml
+cp $ROOT_DIR/docker.env $ROOT_DIR/.cache/docker.env
+cp $ROOT_DIR/.secure/docker.env $ROOT_DIR/.cache/docker.env
 
 # Start docker
 docker-compose -f $ROOT_DIR/.cache/docker-compose.yml up --build $DETACH $SERVICE

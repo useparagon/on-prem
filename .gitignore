@@ -3,6 +3,8 @@
 
 .cache/**
 !.cache/.gitkeep
+.secure/**
+!.secure/.gitkeep
 
 # Logs
 logs
