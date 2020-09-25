@@ -1,5 +1,24 @@
-.env
+.env*
 .git
 
 .cache/**
 !.cache/.gitkeep
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules/
+report.*.json
+.npm
+.eslintcache
+.terraform
+
+coverage
+coverageReport.json
+.idea/
+.vscode
+!.vscode/tasks.js
+
+.DS_Store
