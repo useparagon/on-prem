@@ -9,7 +9,7 @@ services:
     container_name: paragon-cerberus
     image: useparagon/on-prem:latest
     command: ./cerberus
-    env_file: ./docker.env
+    env_file: ./.env-docker
     networks:
       - paragon-on-prem
     ports:
@@ -22,7 +22,7 @@ services:
     container_name: paragon-hercules
     image: useparagon/on-prem:latest
     command: ./hercules
-    env_file: ./docker.env
+    env_file: ./.env-docker
     networks:
       - paragon-on-prem
     ports:
@@ -35,7 +35,7 @@ services:
     container_name: paragon-hermes
     image: useparagon/on-prem:latest
     command: ./hermes
-    env_file: ./docker.env
+    env_file: ./.env-docker
     networks:
       - paragon-on-prem
     ports:
@@ -48,7 +48,7 @@ services:
     container_name: paragon-api
     image: useparagon/on-prem:latest
     command: ./rest-api
-    env_file: ./docker.env
+    env_file: ./.env-docker
     networks:
       - paragon-on-prem
     ports:
@@ -61,7 +61,7 @@ services:
     container_name: paragon-web
     image: useparagon/on-prem:latest
     command: ./web-app
-    env_file: ./docker.env
+    env_file: ./.env-docker
     networks:
       - paragon-on-prem
     ports:

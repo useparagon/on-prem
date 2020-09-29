@@ -1,0 +1,85 @@
+#!/bin/sh
+
+ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
+CACHE_DIR=$ROOT_DIR/.cache
+SECURE_DIR=$ROOT_DIR/.secure
+TF_DIR=$CACHE_DIR/aws
+
+# All files are copied into the `.cache` directory & executed from there
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -p|--preserve) PRESERVE="true" ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Copy AWS terraform files
+if [[ "$PRESERVE" == "true" ]]; then
+  echo "Preserving terraform config."
+else
+  sh $ROOT_DIR/scripts/generate-key-pair.sh
+
+  rm -Rf $CACHE_DIR/aws
+  cp -R $ROOT_DIR/aws $TF_DIR
+
+  cp $ROOT_DIR/.env-aws $CACHE_DIR/.env-aws
+  if [[ -f "$SECURE_DIR/.env-aws" ]]; then
+    cp $SECURE_DIR/.env-aws $CACHE_DIR/.env-aws
+  fi
+
+  # Load variables
+  TF_ORGANIZATION=$(grep TF_ORGANIZATION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  TF_WORKSPACE=$(grep TF_WORKSPACE $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub | grep .)
+
+  if [[ "$TF_ORGANIZATION" == "" ]]; then
+    echo "TF_ORGANIZATION is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [[ "$TF_WORKSPACE" == "" ]]; then
+    echo "TF_WORKSPACE is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [[ "$AWS_ACCESS_KEY_ID" == "" ]]; then
+    echo "AWS_ACCESS_KEY_ID is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [[ "$AWS_SECRET_ACCESS_KEY" == "" ]]; then
+    echo "AWS_SECRET_ACCESS_KEY is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [[ "$AWS_REGION" == "" ]]; then
+    echo "AWS_REGION is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [[ "$SSL_DOMAIN" == "" ]]; then
+    echo "SSL_DOMAIN is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  fi
+
+  # Create terraform variables file (vars.auto.tfvars)
+  VARS_FILE=$TF_DIR/vars.auto.tfvars
+  touch $VARS_FILE
+  echo "aws_region=\"$AWS_REGION\"" >> $VARS_FILE
+  echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $VARS_FILE
+  echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $VARS_FILE
+  echo "ssl_domain=\"$SSL_DOMAIN\"" >> $VARS_FILE
+  echo "public_key=\"$PUBLIC_KEY\"" >> $VARS_FILE
+
+  # Create `main.tf` file from `.env-aws` variables
+  echo "⏱  Preparing \"main.tf\"..."
+  cp $TF_DIR/templates/main.tpl.tf $TF_DIR/main.tf
+  sed -i -e "s~__TF_ORGANIZATION__~$TF_ORGANIZATION~g" $TF_DIR/main.tf >> $CACHE_DIR/aws/main.tf
+  sed -i -e "s~__TF_WORKSPACE__~$TF_WORKSPACE~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
+  rm $TF_DIR/main.tf-e
+  echo "✅ Prepared \"main.tf\""
+
+
+  (cd $TF_DIR && terraform init)
+fi
+
+# Run terraform
+# (cd $TF_DIR && terraform init && terraform validate && terraform plan && terraform apply)
+echo "⏱  Validating terraform..."
+(cd $TF_DIR && terraform validate && terraform plan && terraform apply)

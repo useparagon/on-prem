@@ -1,10 +1,11 @@
-.env*
 .git
 
 .cache/**
 !.cache/.gitkeep
 .secure/**
 !.secure/.gitkeep
+
+terraform/vars.auto.tfvars
 
 # Logs
 logs

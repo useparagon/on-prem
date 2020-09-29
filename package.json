@@ -6,8 +6,9 @@
   "repository": "git@github.com:useparagon/on-prem.git",
   "author": "Paragon Engineering",
   "scripts": {
-    "install": "scripts/install.sh",
+    "setup": "scripts/setup.sh",
     "start": "scripts/start.sh",
-    "stop": "scripts/stop.sh"
+    "stop": "scripts/stop.sh",
+    "terraform:aws": "sh scripts/terraform-aws.sh"
   }
 }

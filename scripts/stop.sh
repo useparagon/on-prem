@@ -1,6 +1,6 @@
 #!/bin/sh
 
-echo "⏱ Stopping containers..."
+echo "⏱  Stopping containers..."
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
