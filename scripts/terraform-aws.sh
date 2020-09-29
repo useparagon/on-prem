@@ -58,14 +58,20 @@ else
     exit 1
   fi
 
-  # Create terraform variables file (vars.auto.tfvars)
-  VARS_FILE=$TF_DIR/vars.auto.tfvars
-  touch $VARS_FILE
-  echo "aws_region=\"$AWS_REGION\"" >> $VARS_FILE
-  echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $VARS_FILE
-  echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $VARS_FILE
-  echo "ssl_domain=\"$SSL_DOMAIN\"" >> $VARS_FILE
-  echo "public_key=\"$PUBLIC_KEY\"" >> $VARS_FILE
+  # Create or copy terraform variables file (vars.auto.tfvars)
+  TF_VARS_FILE=$TF_DIR/vars.auto.tfvars
+  if [[ -f "TF_VARS_FILE" ]]; then
+    cp $ROOT_DIR/aws/vars.auto.tfvars TF_VARS_FILE
+    echo "" >> $TF_VARS_FILE
+  else
+    touch $TF_VARS_FILE
+  fi
+
+  echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
+  echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE
+  echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
+  echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
+  echo "public_key=\"$PUBLIC_KEY\"" >> $TF_VARS_FILE
 
   # Create `main.tf` file from `.env-aws` variables
   echo "⏱  Preparing \"main.tf\"..."

@@ -5,7 +5,7 @@
 .secure/**
 !.secure/.gitkeep
 
-terraform/vars.auto.tfvars
+vars.auto.tfvars
 
 # Logs
 logs
