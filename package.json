@@ -1,0 +1,14 @@
+{
+  "name": "on-prem",
+  "version": "1.0.0",
+  "description": "Run Paragon on your own infra 🔓",
+  "main": "scripts/start.sh",
+  "repository": "git@github.com:useparagon/on-prem.git",
+  "author": "Paragon Engineering",
+  "scripts": {
+    "setup": "scripts/setup.sh",
+    "start": "scripts/start.sh",
+    "stop": "scripts/stop.sh",
+    "terraform:aws": "sh scripts/terraform-aws.sh"
+  }
+}

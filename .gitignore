@@ -1,5 +1,27 @@
-.env
 .git
 
 .cache/**
 !.cache/.gitkeep
+.secure/**
+!.secure/.gitkeep
+
+vars.auto.tfvars
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+node_modules/
+report.*.json
+.npm
+.eslintcache
+.terraform
+
+coverage
+coverageReport.json
+.idea/
+.vscode
+!.vscode/tasks.js
+
+.DS_Store
