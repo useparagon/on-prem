@@ -24,6 +24,13 @@ resource "aws_alb_target_group" "microservice" {
   }
 }
 
+resource "aws_alb_target_group_attachment" "microservice" {
+  for_each         = var.microservices
+  target_group_arn = aws_alb_target_group.microservice[each.key].arn
+  target_id        = aws_instance.ec2.private_ip
+  port             = each.value
+}
+
 resource "aws_alb_listener" "microservice_https" {
   for_each          = var.ssl_domain != "" ? var.microservices : {}
   load_balancer_arn = aws_alb.microservice[each.key].id
