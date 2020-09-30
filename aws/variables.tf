@@ -1,6 +1,6 @@
 variable "app_name" {
   description = "The name of the application."
-  default     = "paragon-on-prem"
+  default     = "paragon"
 }
 
 variable "environment" {
@@ -25,12 +25,37 @@ variable "az_count" {
   default     = "2"
 }
 
+variable "vpc_cidr" {
+  description = "CIDR for the VPC."
+  default     = "10.0.0.0/16"
+}
+
+variable "fargate_cpu" {
+  description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)."
+  default     = "1024"
+}
+
+variable "fargate_memory" {
+  description = "Fargate instance memory to provision (in MiB)."
+  default     = "2048"
+}
+
+variable "health_check_path" {
+  description = "The path to make requests to for verifying container health."
+  default     = "/healthz"
+}
+
 variable "public_key" {
-  description = "The public key for the EC2 instance and bastion."
+  description = "The public key for the EC2 instance."
+}
+
+variable "private_key" {
+  description = "The private key for the EC2 instance."
 }
 
 variable "ssl_domain" {
   description = "The domain that your SSL certificate is registered to."
+  default     = ""
 }
 
 variable "microservices" {

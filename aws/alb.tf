@@ -1,17 +1,17 @@
 resource "aws_alb" "microservice" {
   for_each        = var.microservices
   name            = "${var.environment}-${var.app_name}-${each.key}-alb"
-  subnets         = var.public_subnet.*.id
+  subnets         = aws_subnet.public.*.id
   security_groups = [aws_security_group.alb.id]
 }
 
 resource "aws_alb_target_group" "microservice" {
-  for_each    = var.microservices
-  name        = "${var.environment}-${var.app_name}-${each.key}-alb-group"
-  port        = each.value
-  protocol    = "HTTP"
-  vpc_id      = var.vpc_id
-  target_type = "ip"
+  for_each              = var.microservices
+  name                  = "${var.environment}-${var.app_name}-${each.key}-alb-tg"
+  port                  = each.value
+  protocol              = "HTTP"
+  vpc_id                = aws_vpc.main.id
+  target_type           = "ip"
 
   health_check {
     healthy_threshold   = "3"
@@ -25,26 +25,26 @@ resource "aws_alb_target_group" "microservice" {
 }
 
 resource "aws_alb_listener" "microservice_https" {
-  for_each          = var.microservices
-  load_balancer_arn = aws_alb.main.id
+  for_each          = var.ssl_domain != "" ? var.microservices : {}
+  load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 443
   protocol          = "HTTPS"
-  certificate_arn   = data.aws_acm_certificate.ssl.arn
+  certificate_arn   = aws_acm_certificate.ssl[0].arn
 
   default_action {
-    target_group_arn = aws_alb_target_group.microservice[index(var.microservices, each.value)].id
+    target_group_arn = aws_alb_target_group.microservice[each.key].id
     type             = "forward"
   }
 }
 
 resource "aws_alb_listener" "microservice_http" {
   for_each          = var.microservices
-  load_balancer_arn = aws_alb.main.id
+  load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    target_group_arn = aws_alb_target_group.microservice[index(var.microservices, each.value)].id
+    target_group_arn = aws_alb_target_group.microservice[each.key].id
     type             = "forward"
   }
 }

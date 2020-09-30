@@ -21,6 +21,9 @@ if [[ "$PRESERVE" == "true" ]]; then
 else
   sh $ROOT_DIR/scripts/generate-key-pair.sh
 
+  cp $ROOT_DIR/.secure/id_rsa $CACHE_DIR/id_rsa
+  cp $ROOT_DIR/.secure/id_rsa.pub $CACHE_DIR/id_rsa.pub
+
   rm -Rf $CACHE_DIR/aws
   cp -R $ROOT_DIR/aws $TF_DIR
 
@@ -36,7 +39,8 @@ else
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
-  PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub | grep .)
+  PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
+  PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
   if [[ "$TF_ORGANIZATION" == "" ]]; then
     echo "TF_ORGANIZATION is empty. Please add it to your \".env-aws\" file"
@@ -54,14 +58,13 @@ else
     echo "AWS_REGION is empty. Please add it to your \".env-aws\" file"
     exit 1
   elif [[ "$SSL_DOMAIN" == "" ]]; then
-    echo "SSL_DOMAIN is empty. Please add it to your \".env-aws\" file"
-    exit 1
+    echo "⚠️  SSL_DOMAIN is empty. Please add it to your \".env-aws\" file to add SSL support."
   fi
 
   # Create or copy terraform variables file (vars.auto.tfvars)
   TF_VARS_FILE=$TF_DIR/vars.auto.tfvars
-  if [[ -f "TF_VARS_FILE" ]]; then
-    cp $ROOT_DIR/aws/vars.auto.tfvars TF_VARS_FILE
+  if [[ -f "$ROOT_DIR/aws/vars.auto.tfvars" ]]; then
+    cp $ROOT_DIR/aws/vars.auto.tfvars $TF_VARS_FILE
     echo "" >> $TF_VARS_FILE
   else
     touch $TF_VARS_FILE
@@ -71,7 +74,8 @@ else
   echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE
   echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
-  echo "public_key=\"$PUBLIC_KEY\"" >> $TF_VARS_FILE
+  echo "public_key=<<EOF\n$PUBLIC_KEY\nEOF" >> $TF_VARS_FILE
+  echo "private_key=<<EOF\n$PRIVATE_KEY\nEOF" >> $TF_VARS_FILE
 
   # Create `main.tf` file from `.env-aws` variables
   echo "⏱  Preparing \"main.tf\"..."

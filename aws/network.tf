@@ -56,13 +56,13 @@ resource "aws_eip" "gw" {
   }
 }
 
-resource "aws_eip" "bastion" {
-  count      = var.az_count
+resource "aws_eip" "ec2" {
+  count      = 1
   vpc        = true
   depends_on = [aws_internet_gateway.gw]
 
   tags = {
-    Name        = "${var.environment}-${var.app_name}-bastion-eip"
+    Name        = "${var.environment}-${var.app_name}-ec2-eip"
     Environment = var.environment
     Terraform   = "true"
   }
@@ -123,9 +123,9 @@ resource "aws_route_table_association" "private" {
   route_table_id = element(aws_route_table.private.*.id, count.index)
 }
 
-resource "aws_eip_association" "eip_assoc" {
-  count         = var.az_count
+resource "aws_eip_association" "ec2_eip_assoc" {
+  count         = 1
 
-  instance_id   = element(aws_instance.bastion.*.id, count.index)
-  allocation_id = element(aws_eip.bastion.*.id, count.index)
+  instance_id   = element(aws_instance.ec2.*.id, count.index)
+  allocation_id = element(aws_eip.ec2.*.id, count.index)
 }
