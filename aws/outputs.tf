@@ -7,8 +7,9 @@ output "albs" {
 
 output "ec2" {
   value = {
-    public_ips  = aws_eip.ec2.*.public_ip
-    keys        = aws_key_pair.ec2.*.key_name
+    public_dns  = aws_eip.ec2.public_dns
+    public_ip   = aws_eip.ec2.public_ip
+    keys        = aws_key_pair.ec2.key_name
   }
 }
 

@@ -57,7 +57,6 @@ resource "aws_eip" "gw" {
 }
 
 resource "aws_eip" "ec2" {
-  count      = 1
   vpc        = true
   depends_on = [aws_internet_gateway.gw]
 
@@ -124,8 +123,6 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_eip_association" "ec2_eip_assoc" {
-  count         = 1
-
-  instance_id   = element(aws_instance.ec2.*.id, count.index)
-  allocation_id = element(aws_eip.ec2.*.id, count.index)
+  instance_id   = aws_instance.ec2.id
+  allocation_id = aws_eip.ec2.id
 }

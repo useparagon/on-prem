@@ -7,12 +7,9 @@ terraform {
     }
   }
 
-  backend "remote" {
-    hostname       = "app.terraform.io"
-    organization   = "__TF_ORGANIZATION__"
-
-    workspaces {
-      name         = "__TF_WORKSPACE__"
-    }
+  backend "s3" {
+    bucket         = "__TF_BUCKET__"
+    key            = "__TF_STATE_KEY__"
+    region         = "__AWS_REGION__"
   }
 }

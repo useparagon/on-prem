@@ -40,6 +40,14 @@ resource "aws_security_group" "ec2" {
   vpc_id            = aws_vpc.main.id
 
   ingress {
+    description     = "Allow inbound SSH traffic"
+    protocol        = "tcp"
+    from_port       = 22
+    to_port         = 22
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  ingress {
     description     = "Allow inbound HTTP traffic from the alb"
     protocol        = "tcp"
     from_port       = 80

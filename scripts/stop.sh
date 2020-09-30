@@ -2,7 +2,9 @@
 
 echo "⏱  Stopping containers..."
 
-while [[ "$#" -gt 0 ]]; do
+ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
+
+while [ "$#" -gt 0 ]]; do
     case $1 in
         -s|--service) SERVICE="$2"; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
@@ -12,7 +14,7 @@ done
 
 ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
 
-if [[ "$SERVICE" == "" ]]; then
+if [ "$SERVICE" == "" ]]; then
   docker-compose -f $ROOT_DIR/.cache/docker-compose.yml down
 
   docker rm paragon-cerberus

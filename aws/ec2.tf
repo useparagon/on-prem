@@ -31,37 +31,26 @@ resource "aws_key_pair" "ec2" {
 }
 
 resource "aws_instance" "ec2" {
-  ami                     = data.aws_ami.ubuntu-1604.id
-  instance_type           = "t3.medium"
-  key_name                = element(aws_key_pair.ec2.*.id, 0)
-  user_data               = data.template_file.startup.rendered
+  ami                         = data.aws_ami.ubuntu-1604.id
+  instance_type               = "t3.medium"
+  key_name                    = aws_key_pair.ec2.id
+  user_data                   = data.template_file.startup.rendered
+  associate_public_ip_address = true
+  
+  subnet_id                   = element(aws_subnet.public.*.id, 0)
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
 
-  subnet_id               = element(aws_subnet.private.*.id, 0)
-  vpc_security_group_ids  = [aws_security_group.ec2.id]
-
-  provisioner "remote-exec" {
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = var.private_key
-      host        = aws_eip.ec2[0].public_ip
-    }
-
-    inline = [
-       "mkdir /paragon"
-    ]
+  connection {
+    user        = "ubuntu"
+    private_key = var.private_key
+    host        = self.public_ip
   }
 
-  provisioner "file" {
-    connection {
-      type        = "ssh"
-      user        = "ubuntu"
-      private_key = var.private_key
-      host        = aws_eip.ec2[0].public_ip
-    }
-
-    source      = "../../../.cache/"
-    destination = "/paragon"
+  provisioner "remote-exec" {
+    inline = [
+       "sudo mkdir ~/paragon",
+       "sudo chmod 777 ~/paragon"
+    ]
   }
 
   tags = {
@@ -69,4 +58,23 @@ resource "aws_instance" "ec2" {
     Environment           = var.environment
     Terraform             = "true"
   }
+}
+
+resource "null_resource" "provisioner_container" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
+  connection {
+    user        = "ubuntu"
+    private_key = var.private_key
+    host        = aws_instance.ec2.public_ip
+  }
+
+  provisioner "file" {
+    source      = "../../"
+    destination = "~/paragon"
+  }
+
+  depends_on = [aws_instance.ec2]
 }
