@@ -17,13 +17,13 @@ echo "ℹ️  SECURE_DIR: $SECURE_DIR"
 # This allows us to store secrets in `.secure/.env-docker` without committing to git.
 cp $ROOT_DIR/docker-compose.yml $CACHE_DIR/docker-compose.yml
 cp $ROOT_DIR/.env-docker $CACHE_DIR/.env-docker
-if [[ -f "$SECURE_DIR/.env-docker" ]]; then
+if [ -f "$SECURE_DIR/.env-docker" ]; then
   cp $SECURE_DIR/.env-docker $CACHE_DIR/.env-docker
 fi
 
 # Load env variables from `.env-docker`
 LICENSE=$(grep LICENSE $CACHE_DIR/.env-docker | cut -d '=' -f2)
-if [[ "$LICENSE" == "" ]]; then
+if [ "$LICENSE" == "" ]; then
   echo "LICENSE is empty. Please add it to your \".env-docker\" file"
   exit 1
 fi

@@ -14,7 +14,7 @@ echo "ℹ️  TF_DIR: $TF_DIR"
 
 # All files are copied into the `.cache` directory & executed from there
 
-while [ "$#" -gt 0 ]]; do
+while [ "$#" -gt 0 ]; do
     case $1 in
         -p|--preserve) PRESERVE="true" ;;
         -a|--autoapprove) AUTO_APPROVE="-auto-approve" ;;
@@ -24,7 +24,7 @@ while [ "$#" -gt 0 ]]; do
 done
 
 # Copy AWS terraform files
-if [ "$PRESERVE" == "true" ]]; then
+if [ "$PRESERVE" == "true" ]; then
   echo "Preserving terraform config."
 else
   sh $ROOT_DIR/scripts/build.sh
@@ -37,7 +37,7 @@ else
   cp -R $ROOT_DIR/aws $TF_DIR
 
   cp $ROOT_DIR/.env-aws $CACHE_DIR/.env-aws
-  if [ -f "$SECURE_DIR/.env-aws" ]]; then
+  if [ -f "$SECURE_DIR/.env-aws" ]; then
     cp $SECURE_DIR/.env-aws $CACHE_DIR/.env-aws
   fi
 
@@ -51,28 +51,28 @@ else
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
-  if [ "$TF_BUCKET" == "" ]]; then
+  if [ "$TF_BUCKET" == "" ]; then
     echo "TF_BUCKET is empty. Please add it to your \".env-aws\" file"
     exit 1
-  elif [ "$TF_STATE_KEY" == "" ]]; then
+  elif [ "$TF_STATE_KEY" == "" ]; then
     echo "TF_STATE_KEY is empty. Please add it to your \".env-aws\" file"
     exit 1
-  elif [ "$AWS_ACCESS_KEY_ID" == "" ]]; then
+  elif [ "$AWS_ACCESS_KEY_ID" == "" ]; then
     echo "AWS_ACCESS_KEY_ID is empty. Please add it to your \".env-aws\" file"
     exit 1
-  elif [ "$AWS_SECRET_ACCESS_KEY" == "" ]]; then
+  elif [ "$AWS_SECRET_ACCESS_KEY" == "" ]; then
     echo "AWS_SECRET_ACCESS_KEY is empty. Please add it to your \".env-aws\" file"
     exit 1
-  elif [ "$AWS_REGION" == "" ]]; then
+  elif [ "$AWS_REGION" == "" ]; then
     echo "AWS_REGION is empty. Please add it to your \".env-aws\" file"
     exit 1
-  elif [ "$SSL_DOMAIN" == "" ]]; then
+  elif [ "$SSL_DOMAIN" == "" ]; then
     echo "⚠️  SSL_DOMAIN is empty. Please add it to your \".env-aws\" file to add SSL support."
   fi
 
   # Create or copy terraform variables file (vars.auto.tfvars)
   TF_VARS_FILE=$TF_DIR/vars.auto.tfvars
-  if [ -f "$ROOT_DIR/aws/vars.auto.tfvars" ]]; then
+  if [ -f "$ROOT_DIR/aws/vars.auto.tfvars" ]; then
     cp $ROOT_DIR/aws/vars.auto.tfvars $TF_VARS_FILE
     echo "" >> $TF_VARS_FILE
   else
