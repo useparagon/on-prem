@@ -10,7 +10,7 @@
 
 ## Description
 
-This repository is a set of tools to help you run Paragon on your own infrastructure. Paragon comes bundled in a <a target="_blank" href="https://hub.docker.com/repository/docker/useparagon/on-prem">docker image</a>, meaning you can run it on a laptop, linux server, AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity.
+This repository is a set of tools to help you run Paragon on your own infrastructure. Paragon comes bundled in a <a target="_blank" href="https://hub.docker.com/repository/docker/useparagon/on-prem">docker image</a>, meaning you can run it on AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity.
 
 We recommend using Docker Compose to get up and running quickly.
 
@@ -60,6 +60,6 @@ We have provided a series of scripts and [Terraform](https://www.terraform.io/) 
 
 Paragon should now be running live on your AWS infrastructure.
 
-#### Questions? Comments?
+#### Questions?
 
 Please contact [**support@useparagon.com**](mailto:support@useparagon.com), and we'll connect you with our enterprise team to help make your on-prem installation as frictionless as possible.
