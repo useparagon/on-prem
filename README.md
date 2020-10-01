@@ -1,9 +1,11 @@
 <p align="center">
-  <a href="https://www.useparagon.com/" target="blank"><img src="./assets/paragon-logo-light.png" width="320" alt="Paragon Logo" /></a>
+  <a href="https://www.useparagon.com/" target="blank"><img src="./assets/paragon-logo-dark.png" width="320" alt="Paragon Logo" /></a>
 </p>
 
 <p align="center">
-  Paragon lets you build production-ready integrations in minutes, not months.
+  <b>
+    Paragon lets you build production-ready integrations in minutes, not months.
+  </b>
 </p>
 
 ## Description
