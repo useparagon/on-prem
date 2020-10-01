@@ -10,7 +10,7 @@
 
 ## Description
 
-This repository is a set of tools to help you run Paragon on your own infrastructure. Paragon comes bundled in a <a href="https://hub.docker.com/repository/docker/useparagon/on-prem">docker image</a>, meaning you can run it on a laptop, linux server, AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity.
+This repository is a set of tools to help you run Paragon on your own infrastructure. Paragon comes bundled in a <a target="_blank" href="https://hub.docker.com/repository/docker/useparagon/on-prem">docker image</a>, meaning you can run it on a laptop, linux server, AWS, GCP, Azure, or any other server or cloud that supports Docker and has internet connectivity.
 
 We recommend using Docker Compose to get up and running quickly.
 
