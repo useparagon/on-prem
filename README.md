@@ -60,6 +60,6 @@ We have provided a series of scripts and [Terraform](https://www.terraform.io/) 
 
 Paragon should now be running live on your AWS infrastructure.
 
-#### Questions? Comments?
+#### Questions?
 
 Please contact [**support@useparagon.com**](mailto:support@useparagon.com), and we'll connect you with our enterprise team to help make your on-prem installation as frictionless as possible.
