@@ -13,6 +13,28 @@ output "ec2" {
   }
 }
 
-output "workflows_s3_bucket" {
-  value = aws_s3_bucket.workflows.id
+output "s3" {
+  value = {
+    app = {
+      bucket    = aws_s3_bucket.app.bucket
+      domain    = aws_s3_bucket.app.bucket_domain_name
+    }
+  }
+}
+
+output "elasticache" {
+  value         = {
+    host        = aws_elasticache_cluster.redis.cache_nodes[0].address
+    port        = aws_elasticache_cluster.redis.cache_nodes[0].port
+  }
+}
+
+output "rds" {
+  value         = {
+    endpoint    = aws_db_instance.postgres.endpoint
+    port        = aws_db_instance.postgres.port
+    user        = var.postgres_root_username
+    password    = var.postgres_root_password
+    database    = aws_db_instance.postgres.name
+  }
 }

@@ -20,6 +20,14 @@ variable "aws_secret_access_key" {
   description = "AWS Secret Access Key for AWS account to provision resources on."
 }
 
+variable "postgres_root_username" {
+  description = "Username for the Postgres root user."
+}
+
+variable "postgres_root_password" {
+  description = "Password for the Postgres root user."
+}
+
 variable "az_count" {
   description = "Number of AZs to cover in a given region."
   default     = "2"
