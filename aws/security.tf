@@ -93,3 +93,83 @@ resource "aws_security_group" "ec2" {
     Terraform       = "true"
   }
 }
+
+resource "aws_security_group" "elasticache" {
+  name_prefix       = "${var.environment}-${var.app_name}-elasticache"
+  description       = "Security access rules for Elasticache."
+  vpc_id            = aws_vpc.main.id
+
+  ingress {
+    description     = "Allow inbound traffic from services in the public subnet on port 6379."
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    cidr_blocks     = aws_subnet.public.*.cidr_block
+  }
+
+  ingress {
+    description     = "Allow inbound traffic from services in the private subnet on port 6379."
+    from_port       = 6379
+    to_port         = 6379
+    protocol        = "tcp"
+    cidr_blocks     = aws_subnet.private.*.cidr_block
+  }
+
+  egress {
+    description     = "Allow all outbound traffic."
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name            = "${var.environment}-${var.app_name}-elasticache-security-group"
+    Environment     = var.environment
+    Terraform       = "true"
+  }
+}
+
+resource "aws_security_group" "postgres" {
+  name_prefix       = "${var.environment}-${var.app_name}-postgres"
+  description       = "Security access rules for Postgres."
+  vpc_id            = aws_vpc.main.id
+
+  ingress {
+    description     = "Allow inbound traffic from services in the public subnet on port 5432."
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    cidr_blocks     = aws_subnet.public.*.cidr_block
+  }
+
+  ingress {
+    description     = "Allow inbound traffic from services in the private subnet on port 5432."
+    from_port       = 5432
+    to_port         = 5432
+    protocol        = "tcp"
+    cidr_blocks     = aws_subnet.private.*.cidr_block
+  }
+
+  egress {
+    description     = "Allow all outbound traffic."
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+
+  tags = {
+    Name            = "${var.environment}-${var.app_name}-postgres-security-group"
+    Environment     = var.environment
+    Terraform       = "true"
+  }
+}

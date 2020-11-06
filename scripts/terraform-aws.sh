@@ -17,7 +17,6 @@ echo "ℹ️  TF_DIR: $TF_DIR"
 while [ "$#" -gt 0 ]; do
     case $1 in
         -p|--preserve) PRESERVE="true" ;;
-        -a|--autoapprove) AUTO_APPROVE="-auto-approve" ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
@@ -47,6 +46,8 @@ else
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  POSTGRES_ROOT_USERNAME=$(grep POSTGRES_ROOT_USERNAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  POSTGRES_ROOT_PASSWORD=$(grep POSTGRES_ROOT_PASSWORD $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
@@ -66,6 +67,12 @@ else
   elif [ "$AWS_REGION" == "" ]; then
     echo "AWS_REGION is empty. Please add it to your \".env-aws\" file"
     exit 1
+  elif [ "$POSTGRES_ROOT_USERNAME" == "" ]; then
+    echo "POSTGRES_ROOT_USERNAME is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [ "$POSTGRES_ROOT_PASSWORD" == "" ]; then
+    echo "POSTGRES_ROOT_PASSWORD is empty. Please add it to your \".env-aws\" file"
+    exit 1
   elif [ "$SSL_DOMAIN" == "" ]; then
     echo "⚠️  SSL_DOMAIN is empty. Please add it to your \".env-aws\" file to add SSL support."
   fi
@@ -79,9 +86,11 @@ else
     touch $TF_VARS_FILE
   fi
 
-  echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
   echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE
   echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
+  echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
+  echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
+  echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
   echo "public_key=<<EOF\n$PUBLIC_KEY\nEOF" >> $TF_VARS_FILE
   echo "private_key=<<EOF\n$PRIVATE_KEY\nEOF" >> $TF_VARS_FILE
@@ -102,6 +111,6 @@ fi
 # Run terraform
 # (cd $TF_DIR && terraform init && terraform validate && terraform plan && terraform apply)
 echo "⏱  Validating terraform..."
-(cd $TF_DIR && terraform validate && terraform plan -out=tf.plan && terraform apply ${AUTO_APPROVE-:""} tf.plan)
+(cd $TF_DIR && terraform validate && terraform plan -out=tf.plan && terraform apply tf.plan)
 
 echo "✅ Completed terraform aws."

@@ -7,7 +7,7 @@ resource "aws_alb" "microservice" {
 
 resource "aws_alb_target_group" "microservice" {
   for_each              = var.microservices
-  name                  = "${var.environment}-${var.app_name}-${each.key}-alb-tg"
+  name                  = "${var.environment}-${var.app_name}-${each.key}"
   port                  = each.value
   protocol              = "HTTP"
   vpc_id                = aws_vpc.main.id
