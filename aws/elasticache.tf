@@ -6,11 +6,13 @@ resource "aws_elasticache_subnet_group" "main" {
 resource "aws_elasticache_cluster" "redis" {
   cluster_id                    = "${var.environment}-${var.app_name}-redis"
   engine                        = "redis"
-  node_type                     = "cache.r4.xlarge"
+  node_type                     = var.elasticache_node_type
   num_cache_nodes               = 1
   parameter_group_name          = "default.redis5.0"
   engine_version                = "5.0.6"
   port                          = 6379
+
+  apply_immediately             = true
  
   snapshot_retention_limit      = 5
   snapshot_window               = "00:00-05:00"

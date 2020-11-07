@@ -66,6 +66,14 @@ variable "ssl_domain" {
   default     = ""
 }
 
+variable "elasticache_node_type" {
+  description = "The ElastiCache node type used for Redis."
+}
+
+variable "rds_instance_class" {
+  description = "The RDS instance class type used for Postgres."
+}
+
 variable "microservices" {
   description   = "A key / value mapping of microservices to ports."
   default       = {

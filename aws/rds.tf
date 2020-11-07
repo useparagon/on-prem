@@ -19,7 +19,7 @@ resource "aws_db_instance" "postgres" {
 
   engine                                    = "postgres"
   engine_version                            = "11.5"
-  instance_class                            = "db.t3.small"
+  instance_class                            = var.rds_instance_class
   parameter_group_name                      = aws_db_parameter_group.postgres.name
   storage_type                              = "gp2"
   replicate_source_db                       = null

@@ -46,12 +46,15 @@ else
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ELASTICACHE_NODE_TYPE=$(grep ELASTICACHE_NODE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  RDS_INSTANCE_CLASS=$(grep RDS_INSTANCE_CLASS $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_USERNAME=$(grep POSTGRES_ROOT_USERNAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_PASSWORD=$(grep POSTGRES_ROOT_PASSWORD $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
+  # required variables
   if [ "$TF_BUCKET" == "" ]; then
     echo "TF_BUCKET is empty. Please add it to your \".env-aws\" file"
     exit 1
@@ -77,6 +80,15 @@ else
     echo "⚠️  SSL_DOMAIN is empty. Please add it to your \".env-aws\" file to add SSL support."
   fi
 
+  # optional variables
+  if [ "$ELASTICACHE_NODE_TYPE" == "" ]; then
+    RDS_INSTANCE_CLASS = "cache.r4.xlarge"
+  fi
+
+  if [ "$RDS_INSTANCE_CLASS" == "" ]; then
+    RDS_INSTANCE_CLASS = "db.t3.small"
+  fi
+
   # Create or copy terraform variables file (vars.auto.tfvars)
   TF_VARS_FILE=$TF_DIR/vars.auto.tfvars
   if [ -f "$ROOT_DIR/aws/vars.auto.tfvars" ]; then
@@ -89,6 +101,8 @@ else
   echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE
   echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
   echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
+  echo "elasticache_node_type=\"$ELASTICACHE_NODE_TYPE\"" >> $TF_VARS_FILE
+  echo "rds_instance_class=\"$RDS_INSTANCE_CLASS\"" >> $TF_VARS_FILE
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
