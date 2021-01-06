@@ -61,7 +61,8 @@ resource "null_resource" "install" {
       "sudo apt install docker.io=18.09.7-0ubuntu1~16.04.6",
       "sudo -E curl -L https://github.com/docker/compose/releases/download/1.27.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose",
       "sudo chmod +x /usr/local/bin/docker-compose",
-      "sudo usermod -aG docker $USER"
+      "sudo usermod -aG docker $USER",
+      "sudo apt-get install postgresql postgresql-contrib"
     ]
   }
 

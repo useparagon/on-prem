@@ -22,16 +22,16 @@ resource "aws_security_group" "alb" {
   egress {
     description     = "Allow outbound HTTP traffic to the public subnet."
     protocol        = "tcp"
-    from_port       = 1700
-    to_port         = 1704
+    from_port       = 80
+    to_port         = 9999
     cidr_blocks     = aws_subnet.public.*.cidr_block
   }
 
   egress {
     description     = "Allow outbound HTTP traffic to the private subnet."
     protocol        = "tcp"
-    from_port       = 1700
-    to_port         = 1704
+    from_port       = 80
+    to_port         = 9999
     cidr_blocks     = aws_subnet.private.*.cidr_block
   }
 
@@ -58,8 +58,8 @@ resource "aws_security_group" "ec2" {
   ingress {
     description     = "Allow inbound HTTP traffic from the alb"
     protocol        = "tcp"
-    from_port       = 1700
-    to_port         = 1704
+    from_port       = 80
+    to_port         = 9999
     security_groups = [aws_security_group.alb.id]
   }
 
