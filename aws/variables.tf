@@ -82,5 +82,6 @@ variable "microservices" {
     "hermes"    = 1702
     "rest-api"  = 1703
     "web-app"   = 1704
+    "passport"  = 1706
   }
 }

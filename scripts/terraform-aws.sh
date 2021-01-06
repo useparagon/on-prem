@@ -106,8 +106,14 @@ else
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
-  echo "public_key=<<EOF\n$PUBLIC_KEY\nEOF" >> $TF_VARS_FILE
-  echo "private_key=<<EOF\n$PRIVATE_KEY\nEOF" >> $TF_VARS_FILE
+
+  echo "public_key=<<EOF" >> $TF_VARS_FILE
+  echo "$PUBLIC_KEY" >> $TF_VARS_FILE
+  echo "EOF" >> $TF_VARS_FILE
+
+  echo "private_key=<<EOF" >> $TF_VARS_FILE
+  echo "$PRIVATE_KEY" >> $TF_VARS_FILE
+  echo "EOF" >> $TF_VARS_FILE
 
   # Create `main.tf` file from `.env-aws` variables
   echo "⏱  Preparing \"main.tf\"..."
@@ -115,16 +121,13 @@ else
   sed -i -e "s~__TF_BUCKET__~$TF_BUCKET~g" $TF_DIR/main.tf >> $CACHE_DIR/aws/main.tf
   sed -i -e "s~__TF_STATE_KEY__~$TF_STATE_KEY~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
   sed -i -e "s~__AWS_REGION__~$AWS_REGION~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
-  rm $TF_DIR/main.tf-e
   echo "✅ Prepared \"main.tf\""
-
 
   (cd $TF_DIR && terraform init)
 fi
 
 # Run terraform
-# (cd $TF_DIR && terraform init && terraform validate && terraform plan && terraform apply)
-echo "⏱  Validating terraform..."
-(cd $TF_DIR && terraform validate && terraform plan -out=tf.plan && terraform apply tf.plan)
+# (cd $TF_DIR && terraform validate)
+(cd $TF_DIR && terraform validate && terraform plan && terraform apply)
 
 echo "✅ Completed terraform aws."

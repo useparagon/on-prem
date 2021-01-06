@@ -7,9 +7,7 @@ terraform {
     }
   }
 
-  backend "s3" {
-    bucket         = "__TF_BUCKET__"
-    key            = "__TF_STATE_KEY__"
-    region         = "__AWS_REGION__"
+  backend "local" {
+    path = "../../.secure/terraform.tfstate"
   }
 }

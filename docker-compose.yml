@@ -69,3 +69,16 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
+
+  passport:
+    container_name: paragon-passport
+    image: useparagon/on-prem:latest
+    command: ./passport
+    env_file: ./.env-docker
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${PASSPORT_PORT:-1704}:${PASSPORT_PORT:-1704}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped

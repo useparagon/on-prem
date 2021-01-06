@@ -1,20 +1,3 @@
-# Get the list of official Canonical Ubuntu 16.04 AMIs
-data "aws_ami" "ubuntu-1604" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-xenial-16.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
 data "template_file" "startup" {
   template = file("${path.module}/templates/startup-ec2.tpl.sh")
 }
@@ -31,7 +14,7 @@ resource "aws_key_pair" "ec2" {
 }
 
 resource "aws_instance" "ec2" {
-  ami                         = data.aws_ami.ubuntu-1604.id
+  ami                         = "ami-0739f8cdb239fe9ae"
   instance_type               = "t3.medium"
   key_name                    = aws_key_pair.ec2.id
   user_data                   = data.template_file.startup.rendered

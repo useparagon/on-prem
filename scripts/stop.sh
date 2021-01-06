@@ -22,6 +22,7 @@ if [ "$SERVICE" == "" ]; then
   docker rm paragon-hermes
   docker rm paragon-api
   docker rm paragon-web
+  docker rm paragon-passport
 else
   docker stop paragon-$SERVICE
   docker rm paragon-$SERVICE
