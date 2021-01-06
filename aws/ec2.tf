@@ -87,12 +87,13 @@ resource "null_resource" "update" {
 
   provisioner "remote-exec" {
     inline = [
-       "chmod 777 ~/paragon/scripts/build.sh",
-       "chmod 777 ~/paragon/scripts/setup.sh",
-       "chmod 777 ~/paragon/scripts/start.sh",
-       "chmod 777 ~/paragon/scripts/stop.sh",
-       "~/paragon/scripts/stop.sh",
-       "~/paragon/scripts/start.sh -d",
+      "cd ~/paragon",
+       "chmod 777 ~/scripts/build.sh",
+       "chmod 777 ~/scripts/setup.sh",
+       "chmod 777 ~/scripts/start.sh",
+       "chmod 777 ~/scripts/stop.sh",
+       "scripts/stop.sh",
+       "scripts/start.sh -d",
     ]
   }
 

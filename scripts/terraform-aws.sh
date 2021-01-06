@@ -120,27 +120,34 @@ fi
 # (cd $TF_DIR && terraform validate)
 (cd $TF_DIR && terraform validate && terraform plan && terraform apply)
 
-# get the application load balancers, s3, postgres and elasticache config + update the environment variables
-sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.cerberus')" $CACHE_DIR/.env-docker
-sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hercules')" $CACHE_DIR/.env-docker
-sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hermes')" $CACHE_DIR/.env-docker
-sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["rest-api"]')" $CACHE_DIR/.env-docker
-sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["web-app"]')" $CACHE_DIR/.env-docker
-sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.passport')" $CACHE_DIR/.env-docker
+updateVariables() {
+  # get the application load balancers, s3, postgres and elasticache config + update the environment variables
+  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.cerberus')" $1
+  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hercules')" $1
+  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hermes')" $1
+  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["rest-api"]')" $1
+  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["web-app"]')" $1
+  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.passport')" $1
 
-sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.host'):$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.port')" $CACHE_DIR/.env-docker
+  sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.host'):$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.port')" $1
 
-sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.host')" $CACHE_DIR/.env-docker
-sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.port')" $CACHE_DIR/.env-docker
-sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.user')" $CACHE_DIR/.env-docker
-sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.password')" $CACHE_DIR/.env-docker
-sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.database')" $CACHE_DIR/.env-docker
+  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.host')" $1
+  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.port')" $1
+  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.user')" $1
+  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.password')" $1
+  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.database')" $1
 
-sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeyId')" $CACHE_DIR/.env-docker
-sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeySecret')" $CACHE_DIR/.env-docker
-sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.bucket')" $CACHE_DIR/.env-docker
+  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeyId')" $1
+  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeySecret')" $1
+  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.bucket')" $1
+}
 
 # run terraform apply again to update the configuration
+updateVariables $CACHE_DIR/.env-docker
+if [ -f "$SECURE_DIR/.env-aws" ]; then
+  updateVariables $SECURE_DIR/.env-docker
+fi
+
 (cd $TF_DIR && terraform apply -auto-approve)
 
 echo "✅ Completed terraform aws."
