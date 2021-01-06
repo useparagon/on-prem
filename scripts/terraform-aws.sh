@@ -41,8 +41,6 @@ else
   fi
 
   # Load variables
-  TF_BUCKET=$(grep TF_BUCKET $CACHE_DIR/.env-aws | cut -d '=' -f2)
-  TF_STATE_KEY=$(grep TF_STATE_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -55,13 +53,7 @@ else
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
   # required variables
-  if [ "$TF_BUCKET" == "" ]; then
-    echo "TF_BUCKET is empty. Please add it to your \".env-aws\" file"
-    exit 1
-  elif [ "$TF_STATE_KEY" == "" ]; then
-    echo "TF_STATE_KEY is empty. Please add it to your \".env-aws\" file"
-    exit 1
-  elif [ "$AWS_ACCESS_KEY_ID" == "" ]; then
+  if [ "$AWS_ACCESS_KEY_ID" == "" ]; then
     echo "AWS_ACCESS_KEY_ID is empty. Please add it to your \".env-aws\" file"
     exit 1
   elif [ "$AWS_SECRET_ACCESS_KEY" == "" ]; then
@@ -106,25 +98,56 @@ else
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
-  echo "public_key=<<EOF\n$PUBLIC_KEY\nEOF" >> $TF_VARS_FILE
-  echo "private_key=<<EOF\n$PRIVATE_KEY\nEOF" >> $TF_VARS_FILE
+
+  echo "public_key=<<EOF" >> $TF_VARS_FILE
+  echo "$PUBLIC_KEY" >> $TF_VARS_FILE
+  echo "EOF" >> $TF_VARS_FILE
+
+  echo "private_key=<<EOF" >> $TF_VARS_FILE
+  echo "$PRIVATE_KEY" >> $TF_VARS_FILE
+  echo "EOF" >> $TF_VARS_FILE
 
   # Create `main.tf` file from `.env-aws` variables
   echo "⏱  Preparing \"main.tf\"..."
   cp $TF_DIR/templates/main.tpl.tf $TF_DIR/main.tf
-  sed -i -e "s~__TF_BUCKET__~$TF_BUCKET~g" $TF_DIR/main.tf >> $CACHE_DIR/aws/main.tf
-  sed -i -e "s~__TF_STATE_KEY__~$TF_STATE_KEY~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
   sed -i -e "s~__AWS_REGION__~$AWS_REGION~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
-  rm $TF_DIR/main.tf-e
   echo "✅ Prepared \"main.tf\""
-
 
   (cd $TF_DIR && terraform init)
 fi
 
 # Run terraform
-# (cd $TF_DIR && terraform init && terraform validate && terraform plan && terraform apply)
-echo "⏱  Validating terraform..."
-(cd $TF_DIR && terraform validate && terraform plan -out=tf.plan && terraform apply tf.plan)
+# (cd $TF_DIR && terraform validate)
+(cd $TF_DIR && terraform validate && terraform plan && terraform apply)
+
+updateVariables() {
+  # get the application load balancers, s3, postgres and elasticache config + update the environment variables
+  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.cerberus')" $1
+  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hercules')" $1
+  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hermes')" $1
+  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["rest-api"]')" $1
+  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["web-app"]')" $1
+  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.passport')" $1
+
+  sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.host'):$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.port')" $1
+
+  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.host')" $1
+  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.port')" $1
+  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.user')" $1
+  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.password')" $1
+  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.database')" $1
+
+  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeyId')" $1
+  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeySecret')" $1
+  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.bucket')" $1
+}
+
+# run terraform apply again to update the configuration
+updateVariables $CACHE_DIR/.env-docker
+if [ -f "$SECURE_DIR/.env-aws" ]; then
+  updateVariables $SECURE_DIR/.env-docker
+fi
+
+(cd $TF_DIR && terraform apply -auto-approve)
 
 echo "✅ Completed terraform aws."

@@ -12,9 +12,3 @@ if ! [ -x "$(command -v docker)" ]; then
   echo "\"docker\" command not found; installing"
   wget -qO- https://get.docker.com/ | sh
 fi;
-
-# Install terraform
-if ! [ -x "$(command -v terraform)" ]; then
-  # TODO: setup helper for installing terraform
-  echo "\"terraform\" command not found; please install terraform v0.13.2"
-fi;

@@ -11,7 +11,7 @@ while [ "$#" -gt 0 ]; do
     shift
 done
 
-if [ "$SERVICE" == "" ]; then
+if [[ "$SERVICE" == "" ]]; then
   sh $ROOT_DIR/scripts/stop.sh
 else
   sh $ROOT_DIR/scripts/stop.sh -s $SERVICE

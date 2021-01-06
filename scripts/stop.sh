@@ -14,7 +14,7 @@ done
 
 ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
 
-if [ "$SERVICE" == "" ]; then
+if [[ "$SERVICE" == "" ]]; then
   docker-compose -f $ROOT_DIR/.cache/docker-compose.yml down
 
   docker rm paragon-cerberus
@@ -22,6 +22,7 @@ if [ "$SERVICE" == "" ]; then
   docker rm paragon-hermes
   docker rm paragon-api
   docker rm paragon-web
+  docker rm paragon-passport
 else
   docker stop paragon-$SERVICE
   docker rm paragon-$SERVICE

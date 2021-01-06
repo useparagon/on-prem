@@ -80,6 +80,7 @@ variable "microservices" {
     "cerberus"  = 1700
     "hercules"  = 1701
     "hermes"    = 1702
+    "passport"  = 1706
     "rest-api"  = 1703
     "web-app"   = 1704
   }

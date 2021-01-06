@@ -15,10 +15,10 @@ output "ec2" {
 
 output "s3" {
   value = {
-    app = {
-      bucket    = aws_s3_bucket.app.bucket
-      domain    = aws_s3_bucket.app.bucket_domain_name
-    }
+    bucket          = aws_s3_bucket.app.bucket
+    domain          = aws_s3_bucket.app.bucket_domain_name
+    accessKeyId     = aws_iam_access_key.app.id
+    accessKeySecret = aws_iam_access_key.app.secret
   }
 }
 
@@ -31,7 +31,7 @@ output "elasticache" {
 
 output "rds" {
   value         = {
-    endpoint    = aws_db_instance.postgres.endpoint
+    host        = aws_db_instance.postgres.address
     port        = aws_db_instance.postgres.port
     user        = var.postgres_root_username
     password    = var.postgres_root_password
