@@ -41,8 +41,6 @@ else
   fi
 
   # Load variables
-  TF_BUCKET=$(grep TF_BUCKET $CACHE_DIR/.env-aws | cut -d '=' -f2)
-  TF_STATE_KEY=$(grep TF_STATE_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -55,13 +53,7 @@ else
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
   # required variables
-  if [ "$TF_BUCKET" == "" ]; then
-    echo "TF_BUCKET is empty. Please add it to your \".env-aws\" file"
-    exit 1
-  elif [ "$TF_STATE_KEY" == "" ]; then
-    echo "TF_STATE_KEY is empty. Please add it to your \".env-aws\" file"
-    exit 1
-  elif [ "$AWS_ACCESS_KEY_ID" == "" ]; then
+  if [ "$AWS_ACCESS_KEY_ID" == "" ]; then
     echo "AWS_ACCESS_KEY_ID is empty. Please add it to your \".env-aws\" file"
     exit 1
   elif [ "$AWS_SECRET_ACCESS_KEY" == "" ]; then
@@ -118,8 +110,6 @@ else
   # Create `main.tf` file from `.env-aws` variables
   echo "⏱  Preparing \"main.tf\"..."
   cp $TF_DIR/templates/main.tpl.tf $TF_DIR/main.tf
-  sed -i -e "s~__TF_BUCKET__~$TF_BUCKET~g" $TF_DIR/main.tf >> $CACHE_DIR/aws/main.tf
-  sed -i -e "s~__TF_STATE_KEY__~$TF_STATE_KEY~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
   sed -i -e "s~__AWS_REGION__~$AWS_REGION~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
   echo "✅ Prepared \"main.tf\""
 
