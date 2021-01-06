@@ -39,9 +39,14 @@ You will need a license to run the docker image. If you don't already have one, 
 We have provided a series of scripts and [Terraform](https://www.terraform.io/) configuration for provisioning the necessary infrastructure.
 
 1. Download this repo using `git clone git@github.com:useparagon/on-prem.git`
-2. Add your license, Postgres, Redis, AWS S3, and SendGrid connection info in the `.env-docker` file.
-3. Update the `.env-aws` file.
-   a. Add your AWS keys.
+2. Add your configuration & access keys to the `.env-docker` file.
+   1. Add your licence to the `LICENSE` environment variable.
+   2. Create a username for your postgres database and add it to the `POSTGRES_USERNAME` environment variable.
+   3. Provide a password for your postgres database and add it to the `POSTGRES_PASSWORD` environment variable.
+   4. Provide a database for your postgres database and add it to the `POSTGRES_DATABASE` environment variable, e.g. `postgres`.
+   5. Provide a Sendgrid API key and add it to the `SENDGRID_API_KEY` environment variable.
+   6. Provide a Sendgrid sender email and add it to the `SENDGRID_FROM_ADDRESS` environment variable.
+3. Update the `.env-aws` file with your AWS keys.
 4. Run `make terraform-aws`
 
 Paragon should now be running live on your AWS infrastructure.
