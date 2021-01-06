@@ -42,19 +42,7 @@ We have provided a series of scripts and [Terraform](https://www.terraform.io/) 
 2. Add your license, Postgres, Redis, AWS S3, and SendGrid connection info in the `.env-docker` file.
 3. Update the `.env-aws` file.
    a. Add your AWS keys.
-4. Run `sh scripts/terraform-aws.sh`
-5. Take the output from the ALBs generated in Terraform and update the values in your `.env-docker` with the corresponding values.
-   1. Set the value of the `cerberus` alb to `CERBERUS_PUBLIC_URL`.
-   2. Set the value of the `hercules` alb to `HERCULES_PUBLIC_URL`.
-   3. Set the value of the `hermes` alb to `HERMES_PUBLIC_URL`.
-   4. Set the value of the `rest-api` alb to `REST_API_PUBLIC_URL`.
-   5. Set the value of the `web-app` alb to `WEB_APP_PUBLIC_URL`.
-   6. Set the value of the `passport` alb to `PASSPORT_PUBLIC_URL`.
-6. Run `sh scripts/terraform-aws.sh` again.
-7. SSH into your newly provisioned EC2 instance.
-   1. Retrieve the IP from your Terraform output set to `ec2.public_ip`.
-   2. Run `ssh -v -i .secure/id_rsa ubuntu@IP_ADDRESS_GOES_HERE`
-8. Once inside the server, run `sudo scripts/start.sh`.
+4. Run `make terraform-aws`
 
 Paragon should now be running live on your AWS infrastructure.
 

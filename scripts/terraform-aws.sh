@@ -120,4 +120,14 @@ fi
 # (cd $TF_DIR && terraform validate)
 (cd $TF_DIR && terraform validate && terraform plan && terraform apply)
 
+# get the application load balancers + update the environment variables
+sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.cerberus')" $CACHE_DIR/.env-docker
+sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hercules')" $CACHE_DIR/.env-docker
+sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hermes')" $CACHE_DIR/.env-docker
+sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["rest-api"]')" $CACHE_DIR/.env-docker
+sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["web-app"]')" $CACHE_DIR/.env-docker
+sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.passport')" $CACHE_DIR/.env-dockeR
+
+(cd $TF_DIR && terraform apply -auto-approve)
+
 echo "✅ Completed terraform aws."

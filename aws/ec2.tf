@@ -43,9 +43,34 @@ resource "aws_instance" "ec2" {
   }
 }
 
-resource "null_resource" "provisioner_container" {
+resource "null_resource" "install" {
   triggers = {
-    always_run = "${timestamp()}"
+    run_once = "2021-01-01"
+  }
+
+  connection {
+    user        = "ubuntu"
+    private_key = var.private_key
+    host        = aws_instance.ec2.public_ip
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo apt-get update",
+      "sudo apt-get install -y redis-tools",
+      "sudo apt install docker.io=18.09.7-0ubuntu1~16.04.6",
+      "sudo -E curl -L https://github.com/docker/compose/releases/download/1.27.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose",
+      "sudo chmod +x /usr/local/bin/docker-compose",
+      "sudo usermod -aG docker $USER"
+    ]
+  }
+
+  depends_on = [aws_instance.ec2]
+}
+
+resource "null_resource" "update" {
+  triggers = {
+    run_always = "${timestamp()}"
   }
 
   connection {
@@ -59,5 +84,16 @@ resource "null_resource" "provisioner_container" {
     destination = "~/paragon"
   }
 
-  depends_on = [aws_instance.ec2]
+  provisioner "remote-exec" {
+    inline = [
+       "chmod 777 ~/paragon/scripts/build.sh",
+       "chmod 777 ~/paragon/scripts/setup.sh",
+       "chmod 777 ~/paragon/scripts/start.sh",
+       "chmod 777 ~/paragon/scripts/stop.sh",
+       "~/paragon/scripts/stop.sh",
+       "~/paragon/scripts/start.sh -d",
+    ]
+  }
+
+  depends_on = [aws_instance.ec2, null_resource.install]
 }

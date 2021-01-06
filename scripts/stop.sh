@@ -14,7 +14,7 @@ done
 
 ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
 
-if [ "$SERVICE" == "" ]; then
+if [[ "$SERVICE" == "" ]]; then
   docker-compose -f $ROOT_DIR/.cache/docker-compose.yml down
 
   docker rm paragon-cerberus

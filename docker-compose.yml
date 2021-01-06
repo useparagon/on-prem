@@ -78,7 +78,7 @@ services:
     networks:
       - paragon-on-prem
     ports:
-      - "${PASSPORT_PORT:-1704}:${PASSPORT_PORT:-1704}"
+      - "${PASSPORT_PORT:-1706}:${PASSPORT_PORT:-1706}"
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
