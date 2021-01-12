@@ -15,7 +15,7 @@ resource "aws_key_pair" "ec2" {
 
 resource "aws_instance" "ec2" {
   ami                         = "ami-0739f8cdb239fe9ae"
-  instance_type               = "t3.medium"
+  instance_type               = var.ec2_instance_type
   key_name                    = aws_key_pair.ec2.id
   user_data                   = data.template_file.startup.rendered
   associate_public_ip_address = true
@@ -62,7 +62,7 @@ resource "null_resource" "install" {
       "sudo -E curl -L https://github.com/docker/compose/releases/download/1.27.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose",
       "sudo chmod +x /usr/local/bin/docker-compose",
       "sudo usermod -aG docker $USER",
-      "sudo apt-get install postgresql postgresql-contrib"
+      "sudo apt-get -y install postgresql postgresql-contrib"
     ]
   }
 

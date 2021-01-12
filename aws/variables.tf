@@ -70,6 +70,10 @@ variable "elasticache_node_type" {
   description = "The ElastiCache node type used for Redis."
 }
 
+variable "ec2_instance_type" {
+  description = "The EC2 class used for running the installation."
+}
+
 variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
 }

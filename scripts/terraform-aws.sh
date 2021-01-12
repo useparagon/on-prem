@@ -45,6 +45,7 @@ else
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ELASTICACHE_NODE_TYPE=$(grep ELASTICACHE_NODE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  EC2_INSTANCE_TYPE=$(grep EC2_INSTANCE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   RDS_INSTANCE_CLASS=$(grep RDS_INSTANCE_CLASS $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_USERNAME=$(grep POSTGRES_ROOT_USERNAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_PASSWORD=$(grep POSTGRES_ROOT_PASSWORD $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -77,6 +78,10 @@ else
     RDS_INSTANCE_CLASS = "cache.r4.xlarge"
   fi
 
+  if [ "$EC2_INSTANCE_TYPE" == "" ]; then
+    EC2_INSTANCE_TYPE = "t3.xlarge"
+  fi
+
   if [ "$RDS_INSTANCE_CLASS" == "" ]; then
     RDS_INSTANCE_CLASS = "db.t3.small"
   fi
@@ -94,6 +99,7 @@ else
   echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
   echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
   echo "elasticache_node_type=\"$ELASTICACHE_NODE_TYPE\"" >> $TF_VARS_FILE
+  echo "ec2_instance_type=\"$EC2_INSTANCE_TYPE\"" >> $TF_VARS_FILE
   echo "rds_instance_class=\"$RDS_INSTANCE_CLASS\"" >> $TF_VARS_FILE
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
