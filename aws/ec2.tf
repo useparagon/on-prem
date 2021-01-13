@@ -95,6 +95,7 @@ resource "null_resource" "update" {
       "chmod 777 scripts/setup.sh",
       "chmod 777 scripts/start.sh",
       "chmod 777 scripts/stop.sh",
+      "chmod 777 scripts/vars.sh",
       flatten([
         for microservice in each.value : [
           "scripts/stop.sh -s ${microservice}"

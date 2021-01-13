@@ -131,10 +131,8 @@ wrappedUpdateDockerVariables() {
 }
 
 TERRAFORM_APPLY=${TERRAFORM_APPLY:-true}
-ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd -P)"
-CACHE_DIR=$ROOT_DIR/.cache
-SECURE_DIR=$ROOT_DIR/.secure
-TF_DIR=$CACHE_DIR/aws
+CWD="$(cd "$(dirname "$0")" && pwd)"
+source $CWD/vars.sh || exit 1
 
 echo "ℹ️  ROOT_DIR: $ROOT_DIR"
 echo "ℹ️  CACHE_DIR: $CACHE_DIR"
