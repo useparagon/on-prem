@@ -48,11 +48,9 @@ resource "aws_db_instance" "postgres" {
 
   apply_immediately                         = true
 
-  tags = {
+  tags                                      = merge(local.default_tags, {
     Name                                    = "${var.environment}-${var.app_name}-postgres"
-    Environment                             = var.environment
-    Terraform                               = "true"
-  }
+  })
 }
 
 resource "aws_db_parameter_group" "postgres" {
@@ -83,9 +81,7 @@ resource "aws_db_parameter_group" "postgres" {
     create_before_destroy = true
   }
 
-  tags = {
+  tags                                      = merge(local.default_tags, {
     Name                                    = "${var.environment}-${var.app_name}-postgres-group"
-    Environment                             = var.environment
-    Terraform                               = "true"
-  }
+  })
 }

@@ -2,21 +2,17 @@ resource "aws_s3_bucket" "app" {
   bucket = "${var.environment}-${var.app_name}"
   acl    = "private"
 
-  tags = {
+  tags          = merge(local.default_tags, {
     Name        = "${var.environment}-${var.app_name}-app-s3"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  })
 }
 
 resource "aws_iam_user" "app" {
   name              = "${var.environment}-${var.app_name}-s3-user"
 
-  tags = {
+  tags              = merge(local.default_tags, {
     Name            = "${var.environment}-env-${var.app_name}-s3-system"
-    Environment     = var.environment
-    Creator         = "Terraform"
-  }
+  })
 }
 
 resource "aws_iam_access_key" "app" {

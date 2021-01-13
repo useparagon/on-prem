@@ -7,11 +7,9 @@ resource "aws_vpc" "main" {
   enable_dns_hostnames  = true
   enable_dns_support    = true
 
-  tags = {
+  tags                  = merge(local.default_tags, {
     Name                = "${var.environment}-${var.app_name}-vpc"
-    Environment         = var.environment
-    Terraform           = "true"
-  }
+  })
 }
 
 # Create var.az_count public subnets, each in a different AZ
@@ -22,11 +20,9 @@ resource "aws_subnet" "public" {
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.environment}-${var.app_name}-public-subnet"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  tags                    = merge(local.default_tags, {
+    Name                  = "${var.environment}-${var.app_name}-public-subnet"
+  })
 }
 
 # Create var.az_count private subnets, each in a different AZ
@@ -37,11 +33,9 @@ resource "aws_subnet" "private" {
   vpc_id                  = aws_vpc.main.id
   map_public_ip_on_launch = false
 
-  tags = {
+  tags                    = merge(local.default_tags, {
     Name                  = "${var.environment}-${var.app_name}-private-subnet"
-    Environment           = var.environment
-    Terraform             = "true"
-  }
+  })
 }
 
 resource "aws_eip" "gw" {
@@ -49,33 +43,28 @@ resource "aws_eip" "gw" {
   vpc        = true
   depends_on = [aws_internet_gateway.gw]
 
-  tags = {
-    Name        = "${var.environment}-${var.app_name}-gw-eip"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  tags       = merge(local.default_tags, {
+    Name     = "${var.environment}-${var.app_name}-gw-eip"
+  })
 }
 
 resource "aws_eip" "ec2" {
-  vpc        = true
-  depends_on = [aws_internet_gateway.gw]
+  for_each    = local.ec2s
+  vpc         = true
+  depends_on  = [aws_internet_gateway.gw]
 
-  tags = {
-    Name        = "${var.environment}-${var.app_name}-ec2-eip"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  tags        = merge(local.default_tags, {
+    Name      = "${var.environment}-${var.app_name}-ec2-${each.key}-eip"
+  })
 }
 
 # Internet Gateway for the public subnet
 resource "aws_internet_gateway" "gw" {
-  vpc_id = aws_vpc.main.id
+  vpc_id      = aws_vpc.main.id
 
-  tags = {
-    Name        = "${var.environment}-${var.app_name}-internet-gw"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  tags        = merge(local.default_tags, {
+    Name      = "${var.environment}-${var.app_name}-internet-gw"
+  })
 }
 
 # Route the public subnet traffic through the IGW
@@ -91,11 +80,9 @@ resource "aws_nat_gateway" "gw" {
   subnet_id     = element(aws_subnet.public.*.id, count.index)
   allocation_id = element(aws_eip.gw.*.id, count.index)
 
-  tags = {
+  tags          = merge(local.default_tags, {
     Name        = "${var.environment}-${var.app_name}-nat-gw"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  })
 }
 
 # Create a new route table for the private subnets, make it route non-local traffic through the NAT gateway to the internet
@@ -108,11 +95,9 @@ resource "aws_route_table" "private" {
     nat_gateway_id = element(aws_nat_gateway.gw.*.id, count.index)
   }
 
-  tags = {
+  tags          = merge(local.default_tags, {
     Name        = "${var.environment}-${var.app_name}-private-route-table"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  })
 }
 
 # Explicitly associate the newly created route tables to the private subnets (so they don't default to the main route table)
@@ -123,6 +108,9 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_eip_association" "ec2_eip_assoc" {
-  instance_id   = aws_instance.ec2.id
-  allocation_id = aws_eip.ec2.id
+  for_each        = local.ec2s
+  instance_id     = element(values(aws_instance.ec2).*.id, index(keys(local.ec2s), each.key))
+  allocation_id   = element(values(aws_eip.ec2).*.id, index(keys(local.ec2s), each.key))
+
+  depends_on = [aws_instance.ec2, aws_eip.ec2]
 }

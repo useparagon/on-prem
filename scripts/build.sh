@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "⏱  Building docker configuration..."
 
@@ -23,7 +23,7 @@ fi
 
 # Load env variables from `.env-docker`
 LICENSE=$(grep LICENSE $CACHE_DIR/.env-docker | cut -d '=' -f2)
-if [ "$LICENSE" == "" ]; then
+if [[ "$LICENSE" == "" ]]; then
   echo "LICENSE is empty. Please add it to your \".env-docker\" file"
   exit 1
 fi

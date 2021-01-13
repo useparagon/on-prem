@@ -6,14 +6,13 @@ resource "aws_key_pair" "ec2" {
   key_name      = "${var.environment}-${var.app_name}-ec2-key"
   public_key    = var.public_key
 
-  tags = {
+  tags          = merge(local.default_tags, {
     Name        = "${var.environment}-${var.app_name}-ec2-keypair"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  })
 }
 
 resource "aws_instance" "ec2" {
+  for_each                    = local.ec2s
   ami                         = "ami-0739f8cdb239fe9ae"
   instance_type               = var.ec2_instance_type
   key_name                    = aws_key_pair.ec2.id
@@ -36,14 +35,14 @@ resource "aws_instance" "ec2" {
     ]
   }
 
-  tags = {
-    Name                  = "${var.environment}-${var.app_name}-ec2"
-    Environment           = var.environment
-    Terraform             = "true"
-  }
+  tags                    = merge(local.default_tags, {
+    Name                  = "${var.environment}-${var.app_name}-ec2-${each.key}"
+  })
 }
 
 resource "null_resource" "install" {
+  for_each                    = local.ec2s
+
   triggers = {
     run_once = "2021-01-01"
   }
@@ -51,17 +50,19 @@ resource "null_resource" "install" {
   connection {
     user        = "ubuntu"
     private_key = var.private_key
-    host        = aws_instance.ec2.public_ip
+    host        = element(values(aws_instance.ec2).*.public_ip, index(keys(local.ec2s), each.key))
   }
 
   provisioner "remote-exec" {
     inline = [
       "sudo apt-get update",
       "sudo apt-get install -y redis-tools",
-      "sudo apt install docker.io=18.09.7-0ubuntu1~16.04.6",
+      "sudo apt-get install -y docker.io",
       "sudo -E curl -L https://github.com/docker/compose/releases/download/1.27.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose",
       "sudo chmod +x /usr/local/bin/docker-compose",
+      "sudo groupadd docker",
       "sudo usermod -aG docker $USER",
+      "sudo chmod 666 /var/run/docker.sock",
       "sudo apt-get -y install postgresql postgresql-contrib"
     ]
   }
@@ -70,6 +71,8 @@ resource "null_resource" "install" {
 }
 
 resource "null_resource" "update" {
+  for_each                    = local.ec2s
+
   triggers = {
     run_always = "${timestamp()}"
   }
@@ -77,7 +80,7 @@ resource "null_resource" "update" {
   connection {
     user        = "ubuntu"
     private_key = var.private_key
-    host        = aws_instance.ec2.public_ip
+    host        = element(values(aws_instance.ec2).*.public_ip, index(keys(local.ec2s), each.key))
   }
 
   provisioner "file" {
@@ -86,15 +89,24 @@ resource "null_resource" "update" {
   }
 
   provisioner "remote-exec" {
-    inline = [
+    inline = flatten([
       "cd ~/paragon",
-       "chmod 777 ~/scripts/build.sh",
-       "chmod 777 ~/scripts/setup.sh",
-       "chmod 777 ~/scripts/start.sh",
-       "chmod 777 ~/scripts/stop.sh",
-       "scripts/stop.sh",
-       "scripts/start.sh -d",
-    ]
+      "chmod 777 scripts/build.sh",
+      "chmod 777 scripts/setup.sh",
+      "chmod 777 scripts/start.sh",
+      "chmod 777 scripts/stop.sh",
+      "chmod 777 scripts/vars.sh",
+      flatten([
+        for microservice in each.value : [
+          "scripts/stop.sh -s ${microservice}"
+        ]
+      ]),
+      flatten([
+        for microservice in each.value : [
+          "scripts/start.sh -d -s ${microservice}"
+        ]
+      ])
+    ])
   }
 
   depends_on = [aws_instance.ec2, null_resource.install]

@@ -20,10 +20,8 @@ resource "aws_elasticache_cluster" "redis" {
   subnet_group_name             = aws_elasticache_subnet_group.main.name
   security_group_ids            = [aws_security_group.elasticache.id]
 
-  tags = {
+  tags                          = merge(local.default_tags, {
     Name                        = "${var.environment}-${var.app_name}-redis"
-    Environment                 = var.environment
-    Terraform                   = "true"
     Cluster                     = "false"
-  }
+  })
 }

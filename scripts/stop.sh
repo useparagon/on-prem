@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "⏱  Stopping containers..."
 
@@ -17,15 +17,14 @@ ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
 if [[ "$SERVICE" == "" ]]; then
   docker-compose -f $ROOT_DIR/.cache/docker-compose.yml down
 
-  docker rm paragon-cerberus
-  docker rm paragon-hercules
-  docker rm paragon-hermes
-  docker rm paragon-api
-  docker rm paragon-web
-  docker rm paragon-passport
+  (docker rm paragon-cerberus)
+  (docker rm paragon-hercules)
+  (docker rm paragon-hermes)
+  (docker rm paragon-rest-api)
+  (docker rm paragon-web-app)
+  (docker rm paragon-passport)
 else
-  docker stop paragon-$SERVICE
-  docker rm paragon-$SERVICE
+  (docker stop paragon-$SERVICE && docker rm paragon-$SERVICE)
 fi
 
 echo "✅ Stopped containers."
