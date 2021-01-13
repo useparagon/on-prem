@@ -57,11 +57,12 @@ resource "aws_eip" "gw" {
 }
 
 resource "aws_eip" "ec2" {
+  for_each   = local.ec2s
   vpc        = true
   depends_on = [aws_internet_gateway.gw]
 
   tags = {
-    Name        = "${var.environment}-${var.app_name}-ec2-eip"
+    Name        = "${var.environment}-${var.app_name}-ec2-${each.key}-eip"
     Environment = var.environment
     Terraform   = "true"
   }
@@ -123,6 +124,9 @@ resource "aws_route_table_association" "private" {
 }
 
 resource "aws_eip_association" "ec2_eip_assoc" {
-  instance_id   = aws_instance.ec2.id
-  allocation_id = aws_eip.ec2.id
+  for_each        = local.ec2s
+  instance_id     = element(values(aws_instance.ec2).*.id, index(keys(local.ec2s), each.key))
+  allocation_id   = element(values(aws_eip.ec2).*.id, index(keys(local.ec2s), each.key))
+
+  depends_on = [aws_instance.ec2, aws_eip.ec2]
 }

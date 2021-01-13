@@ -1,4 +1,4 @@
-#!/bin/sh -l
+#!/bin/bash
 
 # Install docker-compose
 if ! [ -x "$(command -v docker-compose)" ]; then

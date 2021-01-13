@@ -1,12 +1,12 @@
 resource "aws_alb" "microservice" {
-  for_each        = var.microservices
+  for_each        = local.microservices
   name            = "${var.environment}-${var.app_name}-${each.key}-alb"
   subnets         = aws_subnet.public.*.id
   security_groups = [aws_security_group.alb.id]
 }
 
 resource "aws_alb_target_group" "microservice" {
-  for_each              = var.microservices
+  for_each              = local.microservices
   name                  = "${var.environment}-${var.app_name}-${each.key}"
   port                  = each.value
   protocol              = "HTTP"
@@ -25,14 +25,19 @@ resource "aws_alb_target_group" "microservice" {
 }
 
 resource "aws_alb_target_group_attachment" "microservice" {
-  for_each         = var.microservices
+  for_each         = local.microservices
   target_group_arn = aws_alb_target_group.microservice[each.key].arn
-  target_id        = aws_instance.ec2.private_ip
+  target_id        = element(
+    values(aws_instance.ec2).*.private_ip,
+    index(flatten([
+      for key, value in local.ec2s : contains(value, each.key)
+    ]), true)
+  )
   port             = each.value
 }
 
 resource "aws_alb_listener" "microservice_https" {
-  for_each          = var.ssl_domain != "" ? var.microservices : {}
+  for_each          = var.ssl_domain != "" ? local.microservices : {}
   load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 443
   protocol          = "HTTPS"
@@ -45,7 +50,7 @@ resource "aws_alb_listener" "microservice_https" {
 }
 
 resource "aws_alb_listener" "microservice_http" {
-  for_each          = var.microservices
+  for_each          = local.microservices
   load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 80
   protocol          = "HTTP"

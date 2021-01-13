@@ -44,7 +44,7 @@ services:
       - ./volume:/var/paragon
     restart: unless-stopped
 
-  api:
+  rest-api:
     container_name: paragon-api
     image: useparagon/on-prem:latest
     command: ./rest-api
@@ -57,7 +57,7 @@ services:
       - ./volume:/var/paragon
     restart: unless-stopped
 
-  web:
+  web-app:
     container_name: paragon-web
     image: useparagon/on-prem:latest
     command: ./web-app

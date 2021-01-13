@@ -78,14 +78,26 @@ variable "rds_instance_class" {
   description = "The RDS instance class type used for Postgres."
 }
 
-variable "microservices" {
-  description   = "A key / value mapping of microservices to ports."
-  default       = {
+locals {
+  microservices = {
     "cerberus"  = 1700
     "hercules"  = 1701
     "hermes"    = 1702
     "passport"  = 1706
     "rest-api"  = 1703
     "web-app"   = 1704
+  }
+
+  ec2s = {
+    web         = [
+      "cerberus",
+      "hermes",
+      "passport",
+      "rest-api",
+      "web-app",
+    ],
+    worker      = [
+      "hercules"
+    ]
   }
 }

@@ -1,33 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "⏱  Starting terraform aws..."
 
-ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
-CACHE_DIR=$ROOT_DIR/.cache
-SECURE_DIR=$ROOT_DIR/.secure
-TF_DIR=$CACHE_DIR/aws
-
-echo "ℹ️  ROOT_DIR: $ROOT_DIR"
-echo "ℹ️  CACHE_DIR: $CACHE_DIR"
-echo "ℹ️  SECURE_DIR: $SECURE_DIR"
-echo "ℹ️  TF_DIR: $TF_DIR"
-
-# All files are copied into the `.cache` directory & executed from there
-
-while [ "$#" -gt 0 ]; do
-    case $1 in
-        -p|--preserve) PRESERVE="true" ;;
-        *) echo "Unknown parameter passed: $1"; exit 1 ;;
-    esac
-    shift
-done
-
-# Copy AWS terraform files
-if [ "$PRESERVE" == "true" ]; then
-  echo "Preserving terraform config."
-else
-  sh $ROOT_DIR/scripts/build.sh
-  sh $ROOT_DIR/scripts/generate-key-pair.sh
+prepareTerraform() {
+  bash $ROOT_DIR/scripts/build.sh
+  bash $ROOT_DIR/scripts/generate-key-pair.sh
 
   cp $ROOT_DIR/.secure/id_rsa $CACHE_DIR/id_rsa
   cp $ROOT_DIR/.secure/id_rsa.pub $CACHE_DIR/id_rsa.pub
@@ -120,40 +97,70 @@ else
   echo "✅ Prepared \"main.tf\""
 
   (cd $TF_DIR && terraform init)
+}
+
+updateDockerVariables() {
+  # get the application load balancers, s3, postgres and elasticache config + update the environment variables
+  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.cerberus')" $1
+  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.hercules')" $1
+  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.hermes')" $1
+  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value["rest-api"]')" $1
+  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value["web-app"]')" $1
+  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.passport')" $1
+
+  sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd $TF_DIR && terraform output -json | jq -r '.elasticache.value.host'):$(cd $TF_DIR && terraform output -json | jq -r '.elasticache.value.port')" $1
+
+  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.host')" $1
+  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.port')" $1
+  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.user')" $1
+  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.password')" $1
+  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.database')" $1
+
+  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.accessKeyId')" $1
+  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.accessKeySecret')" $1
+  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.bucket')" $1
+}
+
+wrappedUpdateDockerVariables() {
+  updateDockerVariables $CACHE_DIR/.env-docker
+  if [ -f "$SECURE_DIR/.env-aws" ]; then
+    updateDockerVariables $SECURE_DIR/.env-docker
+  fi
+}
+
+TERRAFORM_APPLY=${TERRAFORM_APPLY:-true}
+ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd -P)"
+CACHE_DIR=$ROOT_DIR/.cache
+SECURE_DIR=$ROOT_DIR/.secure
+TF_DIR=$CACHE_DIR/aws
+
+echo "ℹ️  ROOT_DIR: $ROOT_DIR"
+echo "ℹ️  CACHE_DIR: $CACHE_DIR"
+echo "ℹ️  SECURE_DIR: $SECURE_DIR"
+echo "ℹ️  TF_DIR: $TF_DIR"
+
+# All files are copied into the `.cache` directory & executed from there
+while [ "$#" -gt 0 ]; do
+    case $1 in
+        -p|--preserve) PRESERVE="true" ;;
+        *) echo "Unknown parameter passed: $1"; exit 1 ;;
+    esac
+    shift
+done
+
+# Copy AWS terraform files
+if [ "$PRESERVE" == "true" ]; then
+  echo "Preserving terraform config."
+else
+  prepareTerraform
 fi
 
 # Run terraform
-# (cd $TF_DIR && terraform validate)
-(cd $TF_DIR && terraform validate && terraform plan && terraform apply)
-
-updateVariables() {
-  # get the application load balancers, s3, postgres and elasticache config + update the environment variables
-  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.cerberus')" $1
-  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hercules')" $1
-  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.hermes')" $1
-  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["rest-api"]')" $1
-  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value["web-app"]')" $1
-  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd .cache/aws && terraform output -json | jq -r '.albs.value.passport')" $1
-
-  sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.host'):$(cd .cache/aws && terraform output -json | jq -r '.elasticache.value.port')" $1
-
-  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.host')" $1
-  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.port')" $1
-  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.user')" $1
-  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.password')" $1
-  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd .cache/aws && terraform output -json | jq -r '.rds.value.database')" $1
-
-  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeyId')" $1
-  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.accessKeySecret')" $1
-  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd .cache/aws && terraform output -json | jq -r '.s3.value.bucket')" $1
-}
-
-# run terraform apply again to update the configuration
-updateVariables $CACHE_DIR/.env-docker
-if [ -f "$SECURE_DIR/.env-aws" ]; then
-  updateVariables $SECURE_DIR/.env-docker
+if [ "$TERRAFORM_APPLY" == "true" ]; then
+  # this is all done as one command so if any step fails the downstream commands don't execute
+  (cd $TF_DIR && terraform validate && terraform apply && wrappedUpdateDockerVariables && terraform apply -auto-approve)
+else
+  (cd $TF_DIR && terraform validate && terraform plan)
 fi
 
-(cd $TF_DIR && terraform apply -auto-approve)
-
-echo "✅ Completed terraform aws."
+echo "✅ Completed provisioning aws via Terraform."

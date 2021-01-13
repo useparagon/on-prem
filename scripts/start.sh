@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ROOT_DIR="$(cd "$(dirname "$0")" && cd ../ && pwd)"
 
@@ -12,9 +12,9 @@ while [ "$#" -gt 0 ]; do
 done
 
 if [[ "$SERVICE" == "" ]]; then
-  sh $ROOT_DIR/scripts/stop.sh
+  bash $ROOT_DIR/scripts/stop.sh
 else
-  sh $ROOT_DIR/scripts/stop.sh -s $SERVICE
+  bash $ROOT_DIR/scripts/stop.sh -s $SERVICE
 fi
 
 $ROOT_DIR/scripts/build.sh
