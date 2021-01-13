@@ -100,4 +100,10 @@ locals {
       "hercules"
     ]
   }
+
+  default_tags  = {
+    Name        = "${var.environment}-${var.app_name}"
+    Environment = var.environment
+    Terraform   = "true"
+  }
 }

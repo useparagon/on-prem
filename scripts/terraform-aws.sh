@@ -101,24 +101,26 @@ prepareTerraform() {
 
 updateDockerVariables() {
   # get the application load balancers, s3, postgres and elasticache config + update the environment variables
-  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.cerberus')" $1
-  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.hercules')" $1
-  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.hermes')" $1
-  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value["rest-api"]')" $1
-  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value["web-app"]')" $1
-  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(cd $TF_DIR && terraform output -json | jq -r '.albs.value.passport')" $1
+  TERRAFORM_OUTPUT=$(cd $TF_DIR && terraform output -json)
 
-  sed -i "/^REDIS_URL=/c\REDIS_URL=$(cd $TF_DIR && terraform output -json | jq -r '.elasticache.value.host'):$(cd $TF_DIR && terraform output -json | jq -r '.elasticache.value.port')" $1
+  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.cerberus')" $1
+  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hercules')" $1
+  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hermes')" $1
+  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["rest-api"]')" $1
+  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["web-app"]')" $1
+  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.passport')" $1
 
-  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.host')" $1
-  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.port')" $1
-  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.user')" $1
-  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.password')" $1
-  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(cd $TF_DIR && terraform output -json | jq -r '.rds.value.database')" $1
+  sed -i "/^REDIS_URL=/c\REDIS_URL=$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.host'):$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.port')" $1
 
-  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.accessKeyId')" $1
-  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.accessKeySecret')" $1
-  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(cd $TF_DIR && terraform output -json | jq -r '.s3.value.bucket')" $1
+  sed -i "/^POSTGRES_HOST=/c\POSTGRES_HOST=$(echo $TERRAFORM_OUTPUT | jq -r '.rds.value.host')" $1
+  sed -i "/^POSTGRES_PORT=/c\POSTGRES_PORT=$(echo $TERRAFORM_OUTPUT | jq -r '.rds.value.port')" $1
+  sed -i "/^POSTGRES_USERNAME=/c\POSTGRES_USERNAME=$(echo $TERRAFORM_OUTPUT | jq -r '.rds.value.user')" $1
+  sed -i "/^POSTGRES_PASSWORD=/c\POSTGRES_PASSWORD=$(echo $TERRAFORM_OUTPUT | jq -r '.rds.value.password')" $1
+  sed -i "/^POSTGRES_DATABASE=/c\POSTGRES_DATABASE=$(echo $TERRAFORM_OUTPUT | jq -r '.rds.value.database')" $1
+
+  sed -i "/^S3_ACCESS_KEY_ID=/c\S3_ACCESS_KEY_ID=$(echo $TERRAFORM_OUTPUT | jq -r '.s3.value.accessKeyId')" $1
+  sed -i "/^S3_SECRET_ACCESS_KEY=/c\S3_SECRET_ACCESS_KEY=$(echo $TERRAFORM_OUTPUT | jq -r '.s3.value.accessKeySecret')" $1
+  sed -i "/^S3_BUCKET=/c\S3_BUCKET=$(echo $TERRAFORM_OUTPUT | jq -r '.s3.value.bucket')" $1
 }
 
 wrappedUpdateDockerVariables() {

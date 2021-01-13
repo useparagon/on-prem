@@ -35,11 +35,9 @@ resource "aws_security_group" "alb" {
     cidr_blocks     = aws_subnet.private.*.cidr_block
   }
 
-  tags = {
-    Name        = "${var.environment}-${var.app_name}-alb-access"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  tags              = merge(local.default_tags, {
+    Name            = "${var.environment}-${var.app_name}-alb-access"
+  })
 }
 
 resource "aws_security_group" "ec2" {
@@ -87,11 +85,9 @@ resource "aws_security_group" "ec2" {
     cidr_blocks     = ["0.0.0.0/0"]
   }
 
-  tags = {
+  tags              = merge(local.default_tags, {
     Name            = "${var.environment}-${var.app_name}-ec2-sg"
-    Environment     = var.environment
-    Terraform       = "true"
-  }
+  })
 }
 
 resource "aws_security_group" "elasticache" {
@@ -127,11 +123,9 @@ resource "aws_security_group" "elasticache" {
     create_before_destroy = true
   }
 
-  tags = {
+  tags              = merge(local.default_tags, {
     Name            = "${var.environment}-${var.app_name}-elasticache-security-group"
-    Environment     = var.environment
-    Terraform       = "true"
-  }
+  })
 }
 
 resource "aws_security_group" "postgres" {
@@ -167,9 +161,7 @@ resource "aws_security_group" "postgres" {
     create_before_destroy = true
   }
 
-  tags = {
+  tags              = merge(local.default_tags, {
     Name            = "${var.environment}-${var.app_name}-postgres-security-group"
-    Environment     = var.environment
-    Terraform       = "true"
-  }
+  })
 }

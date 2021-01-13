@@ -6,11 +6,9 @@ resource "aws_key_pair" "ec2" {
   key_name      = "${var.environment}-${var.app_name}-ec2-key"
   public_key    = var.public_key
 
-  tags = {
+  tags          = merge(local.default_tags, {
     Name        = "${var.environment}-${var.app_name}-ec2-keypair"
-    Environment = var.environment
-    Terraform   = "true"
-  }
+  })
 }
 
 resource "aws_instance" "ec2" {
@@ -37,11 +35,9 @@ resource "aws_instance" "ec2" {
     ]
   }
 
-  tags = {
+  tags                    = merge(local.default_tags, {
     Name                  = "${var.environment}-${var.app_name}-ec2-${each.key}"
-    Environment           = var.environment
-    Terraform             = "true"
-  }
+  })
 }
 
 resource "null_resource" "install" {
