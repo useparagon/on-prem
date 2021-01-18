@@ -91,13 +91,11 @@ locals {
   ec2s = {
     web         = [
       "cerberus",
+      "hercules",
       "hermes",
       "passport",
       "rest-api",
       "web-app",
-    ],
-    worker      = [
-      "hercules"
     ]
   }
 
