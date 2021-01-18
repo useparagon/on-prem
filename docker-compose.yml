@@ -17,8 +17,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.7}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-2560}M
+    cpus: "${DOCKER_WEB_CPU:-0.3}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-2460}M
 
   hercules:
     container_name: paragon-hercules
@@ -32,8 +32,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WORKER_CPU:-3.0}"
-    mem_limit: ${DOCKER_WORKER_MEMORY:-12288}M
+    cpus: "${DOCKER_WORKER_CPU:-1.75}"
+    mem_limit: ${DOCKER_WORKER_MEMORY:-6144}M
 
   hermes:
     container_name: paragon-hermes
@@ -47,8 +47,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.7}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-2560}M
+    cpus: "${DOCKER_WEB_CPU:-0.3}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-2460}M
 
   rest-api:
     container_name: paragon-api
@@ -62,8 +62,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.7}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-2560}M
+    cpus: "${DOCKER_WEB_CPU:-0.3}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-2460}M
 
   web-app:
     container_name: paragon-web
@@ -77,8 +77,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.7}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-2560}M
+    cpus: "${DOCKER_WEB_CPU:-0.3}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-2460}M
 
   passport:
     container_name: paragon-passport
@@ -92,5 +92,5 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.7}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-2560}M
+    cpus: "${DOCKER_WEB_CPU:-0.3}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-2460}M
