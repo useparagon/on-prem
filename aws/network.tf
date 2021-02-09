@@ -31,7 +31,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags                    = merge(local.default_tags, {
-    Name                  = "${var.environment}-${var.app_name}-public-subnet"
+    Name                  = "${var.environment}-${var.app_name}-public-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
   })
 }
 
@@ -44,7 +44,7 @@ resource "aws_subnet" "private" {
   map_public_ip_on_launch = false
 
   tags                    = merge(local.default_tags, {
-    Name                  = "${var.environment}-${var.app_name}-private-subnet"
+    Name                  = "${var.environment}-${var.app_name}-private-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
   })
 }
 
