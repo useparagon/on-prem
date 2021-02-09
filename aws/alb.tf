@@ -10,7 +10,7 @@ resource "aws_alb_target_group" "microservice" {
   name                  = "${var.environment}-${var.app_name}-${each.key}"
   port                  = each.value
   protocol              = "HTTP"
-  vpc_id                = aws_vpc.main.id
+  vpc_id                = data.aws_vpc.selected.id
   target_type           = "ip"
 
   health_check {

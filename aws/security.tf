@@ -1,7 +1,7 @@
 resource "aws_security_group" "alb" {
   name        = "${var.environment}-${var.app_name}-alb-sg"
   description = "Controls access to the ALB"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = data.aws_vpc.selected.id
 
   ingress {
     description = "Allow inbound secure HTTP traffic from anywhere."
@@ -43,7 +43,7 @@ resource "aws_security_group" "alb" {
 resource "aws_security_group" "ec2" {
   name              = "${var.environment}-${var.app_name}-ec2-sg"
   description       = "Controls access from the ALB"
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = data.aws_vpc.selected.id
 
   ingress {
     description     = "Allow inbound SSH traffic"
@@ -93,7 +93,7 @@ resource "aws_security_group" "ec2" {
 resource "aws_security_group" "elasticache" {
   name_prefix       = "${var.environment}-${var.app_name}-elasticache"
   description       = "Security access rules for Elasticache."
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = data.aws_vpc.selected.id
 
   ingress {
     description     = "Allow inbound traffic from services in the public subnet on port 6379."
@@ -131,7 +131,7 @@ resource "aws_security_group" "elasticache" {
 resource "aws_security_group" "postgres" {
   name_prefix       = "${var.environment}-${var.app_name}-postgres"
   description       = "Security access rules for Postgres."
-  vpc_id            = aws_vpc.main.id
+  vpc_id            = data.aws_vpc.selected.id
 
   ingress {
     description     = "Allow inbound traffic from services in the public subnet on port 5432."

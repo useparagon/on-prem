@@ -21,6 +21,7 @@ prepareTerraform() {
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  VPC_ID=$(grep VPC_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ELASTICACHE_NODE_TYPE=$(grep ELASTICACHE_NODE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   EC2_INSTANCE_TYPE=$(grep EC2_INSTANCE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   RDS_INSTANCE_CLASS=$(grep RDS_INSTANCE_CLASS $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -75,6 +76,11 @@ prepareTerraform() {
   echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE
   echo "aws_secret_access_key=\"$AWS_SECRET_ACCESS_KEY\"" >> $TF_VARS_FILE
   echo "aws_region=\"$AWS_REGION\"" >> $TF_VARS_FILE
+
+  if [ "$VPC_ID" != "" ]; then
+    echo "vpc_id=\"$VPC_ID\"" >> $TF_VARS_FILE
+  fi
+
   echo "elasticache_node_type=\"$ELASTICACHE_NODE_TYPE\"" >> $TF_VARS_FILE
   echo "ec2_instance_type=\"$EC2_INSTANCE_TYPE\"" >> $TF_VARS_FILE
   echo "rds_instance_class=\"$RDS_INSTANCE_CLASS\"" >> $TF_VARS_FILE
