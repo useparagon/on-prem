@@ -1,5 +1,5 @@
 resource "aws_security_group" "alb" {
-  name        = "${var.environment}-${var.app_name}-alb-sg"
+  name        = "${local.app_name}-alb-sg"
   description = "Controls access to the ALB"
   vpc_id      = data.aws_vpc.selected.id
 
@@ -36,12 +36,12 @@ resource "aws_security_group" "alb" {
   }
 
   tags              = merge(local.default_tags, {
-    Name            = "${var.environment}-${var.app_name}-alb-access"
+    Name            = "${local.app_name}-alb-access"
   })
 }
 
 resource "aws_security_group" "ec2" {
-  name              = "${var.environment}-${var.app_name}-ec2-sg"
+  name              = "${local.app_name}-ec2-sg"
   description       = "Controls access from the ALB"
   vpc_id            = data.aws_vpc.selected.id
 
@@ -86,12 +86,12 @@ resource "aws_security_group" "ec2" {
   }
 
   tags              = merge(local.default_tags, {
-    Name            = "${var.environment}-${var.app_name}-ec2-sg"
+    Name            = "${local.app_name}-ec2-sg"
   })
 }
 
 resource "aws_security_group" "elasticache" {
-  name_prefix       = "${var.environment}-${var.app_name}-elasticache"
+  name_prefix       = "${local.app_name}-elasticache"
   description       = "Security access rules for Elasticache."
   vpc_id            = data.aws_vpc.selected.id
 
@@ -124,12 +124,12 @@ resource "aws_security_group" "elasticache" {
   }
 
   tags              = merge(local.default_tags, {
-    Name            = "${var.environment}-${var.app_name}-elasticache-security-group"
+    Name            = "${local.app_name}-elasticache-security-group"
   })
 }
 
 resource "aws_security_group" "postgres" {
-  name_prefix       = "${var.environment}-${var.app_name}-postgres"
+  name_prefix       = "${local.app_name}-postgres"
   description       = "Security access rules for Postgres."
   vpc_id            = data.aws_vpc.selected.id
 
@@ -162,6 +162,6 @@ resource "aws_security_group" "postgres" {
   }
 
   tags              = merge(local.default_tags, {
-    Name            = "${var.environment}-${var.app_name}-postgres-security-group"
+    Name            = "${local.app_name}-postgres-security-group"
   })
 }

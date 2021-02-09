@@ -3,11 +3,11 @@ data "template_file" "startup" {
 }
 
 resource "aws_key_pair" "ec2" {
-  key_name      = "${var.environment}-${var.app_name}-ec2-key"
+  key_name      = "${local.app_name}-ec2-key"
   public_key    = var.public_key
 
   tags          = merge(local.default_tags, {
-    Name        = "${var.environment}-${var.app_name}-ec2-keypair"
+    Name        = "${local.app_name}-ec2-keypair"
   })
 }
 
@@ -36,7 +36,7 @@ resource "aws_instance" "ec2" {
   }
 
   tags                    = merge(local.default_tags, {
-    Name                  = "${var.environment}-${var.app_name}-ec2-${each.key}"
+    Name                  = "${local.app_name}-ec2-${each.key}"
   })
 }
 

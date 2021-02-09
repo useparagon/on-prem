@@ -1,17 +1,15 @@
 resource "aws_s3_bucket" "app" {
-  bucket = "${var.environment}-${var.app_name}"
+  bucket = local.app_name
   acl    = "private"
 
-  tags          = merge(local.default_tags, {
-    Name        = "${var.environment}-${var.app_name}-app-s3"
-  })
+  tags   = local.default_tags
 }
 
 resource "aws_iam_user" "app" {
-  name              = "${var.environment}-${var.app_name}-s3-user"
+  name              = "${local.app_name}-s3-user"
 
   tags              = merge(local.default_tags, {
-    Name            = "${var.environment}-env-${var.app_name}-s3-system"
+    Name            = "${local.app_name}-s3-system"
   })
 }
 
@@ -20,7 +18,7 @@ resource "aws_iam_access_key" "app" {
 }
 
 resource "aws_iam_user_policy" "app" {
-  name              = "${var.environment}-${var.app_name}-s3-policy"
+  name              = "${local.app_name}-s3-policy"
   user              = aws_iam_user.app.name
 
   policy            = <<EOF

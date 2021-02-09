@@ -1,10 +1,10 @@
 resource "aws_elasticache_subnet_group" "main" {
-  name       = "${var.environment}-${var.app_name}-elasticache-subnet"
+  name       = "${local.app_name}-elasticache-subnet"
   subnet_ids = aws_subnet.private.*.id
 }
 
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id                    = "${var.environment}-${var.app_name}-redis"
+  cluster_id                    = "${local.app_name}-redis"
   engine                        = "redis"
   node_type                     = var.elasticache_node_type
   num_cache_nodes               = 1
@@ -21,7 +21,7 @@ resource "aws_elasticache_cluster" "redis" {
   security_group_ids            = [aws_security_group.elasticache.id]
 
   tags                          = merge(local.default_tags, {
-    Name                        = "${var.environment}-${var.app_name}-redis"
+    Name                        = "${local.app_name}-redis"
     Cluster                     = "false"
   })
 }

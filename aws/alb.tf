@@ -1,13 +1,13 @@
 resource "aws_alb" "microservice" {
   for_each        = local.microservices
-  name            = "${var.environment}-${var.app_name}-${each.key}-alb"
+  name            = "${local.app_name}-${each.key}-alb"
   subnets         = aws_subnet.public.*.id
   security_groups = [aws_security_group.alb.id]
 }
 
 resource "aws_alb_target_group" "microservice" {
   for_each              = local.microservices
-  name                  = "${var.environment}-${var.app_name}-${each.key}"
+  name                  = "${local.app_name}-${each.key}"
   port                  = each.value
   protocol              = "HTTP"
   vpc_id                = data.aws_vpc.selected.id

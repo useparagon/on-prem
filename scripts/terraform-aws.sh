@@ -18,6 +18,8 @@ prepareTerraform() {
   fi
 
   # Load variables
+  ORGANIZATION=$(grep ORGANIZATION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  APP_NAME=$(grep APP_NAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -32,7 +34,10 @@ prepareTerraform() {
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
   # required variables
-  if [ "$AWS_ACCESS_KEY_ID" == "" ]; then
+  if [ "$ORGANIZATION" == "" ]; then
+    echo "ORGANIZATION is empty. Please add it to your \".env-aws\" file"
+    exit 1
+  elif [ "$AWS_ACCESS_KEY_ID" == "" ]; then
     echo "AWS_ACCESS_KEY_ID is empty. Please add it to your \".env-aws\" file"
     exit 1
   elif [ "$AWS_SECRET_ACCESS_KEY" == "" ]; then
@@ -71,6 +76,12 @@ prepareTerraform() {
     echo "" >> $TF_VARS_FILE
   else
     touch $TF_VARS_FILE
+  fi
+
+  echo "organization=\"$ORGANIZATION\"" >> $TF_VARS_FILE
+
+  if [ "$APP_NAME" != "" ]; then
+    echo "app_name=\"$APP_NAME\"" >> $TF_VARS_FILE
   fi
 
   echo "aws_access_key_id=\"$AWS_ACCESS_KEY_ID\"" >> $TF_VARS_FILE

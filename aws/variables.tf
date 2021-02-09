@@ -1,6 +1,15 @@
+variable "organization" {
+  description = "The name of the organization running the on-prem installation."
+}
+
 variable "app_name" {
-  description = "The name of the application."
-  default     = "paragon"
+  description = "An optional name to override the name of the resources created."
+  default     = null
+}
+
+variable "installation_name_override" {
+  description = "Override for the name used for creating resources (legacy support)."
+  default     = null
 }
 
 variable "environment" {
@@ -95,8 +104,10 @@ locals {
     ]
   }
 
+  app_name = var.app_name != null ? var.app_name : "paragon-${var.organization}"
+
   default_tags  = {
-    Name        = "${var.environment}-${var.app_name}"
+    Name        = local.app_name
     Environment = var.environment
     Terraform   = "true"
   }

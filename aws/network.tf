@@ -9,7 +9,7 @@ resource "aws_vpc" "app" {
   enable_dns_support    = true
 
   tags                  = merge(local.default_tags, {
-    Name                = "${var.environment}-${var.app_name}-vpc"
+    Name                = "${local.app_name}-vpc"
   })
 }
 
@@ -25,63 +25,77 @@ data "aws_vpc" "selected" {
 # Create var.az_count public subnets, each in a different AZ
 resource "aws_subnet" "public" {
   count                   = var.az_count
-  cidr_block              = cidrsubnet(data.aws_vpc.selected.cidr_block, 8, count.index + 1)
+  cidr_block              = cidrsubnet(data.aws_vpc.selected.cidr_block, var.vpc_id == null ? 8 : 3, count.index + 1)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   vpc_id                  = data.aws_vpc.selected.id
   map_public_ip_on_launch = true
 
   tags                    = merge(local.default_tags, {
-    Name                  = "${var.environment}-${var.app_name}-public-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
+    Name                  = "${local.app_name}-public-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
   })
 }
 
 # Create var.az_count private subnets, each in a different AZ
 resource "aws_subnet" "private" {
   count                   = var.az_count
-  cidr_block              = cidrsubnet(data.aws_vpc.selected.cidr_block, 8, var.az_count + count.index + 1)
+  cidr_block              = cidrsubnet(data.aws_vpc.selected.cidr_block, var.vpc_id == null ? 8 : 3, var.az_count + count.index + 1)
   availability_zone       = data.aws_availability_zones.available.names[count.index]
   vpc_id                  = data.aws_vpc.selected.id
   map_public_ip_on_launch = false
 
   tags                    = merge(local.default_tags, {
-    Name                  = "${var.environment}-${var.app_name}-private-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
+    Name                  = "${local.app_name}-private-${substr(data.aws_availability_zones.available.names[count.index], length(data.aws_availability_zones.available.names[count.index]) - 2, 2)}"
   })
 }
 
 resource "aws_eip" "gw" {
   count      = var.az_count
   vpc        = true
-  depends_on = [aws_internet_gateway.gw]
+  depends_on = [data.aws_internet_gateway.selected]
 
   tags       = merge(local.default_tags, {
-    Name     = "${var.environment}-${var.app_name}-gw-eip"
+    Name     = "${local.app_name}-gw-eip"
   })
 }
 
 resource "aws_eip" "ec2" {
   for_each    = local.ec2s
   vpc         = true
-  depends_on  = [aws_internet_gateway.gw]
+  depends_on  = [data.aws_internet_gateway.selected]
 
   tags        = merge(local.default_tags, {
-    Name      = "${var.environment}-${var.app_name}-ec2-${each.key}-eip"
+    Name      = "${local.app_name}-ec2-${each.key}-eip"
   })
 }
 
 # Internet Gateway for the public subnet
-resource "aws_internet_gateway" "gw" {
-  vpc_id      = data.aws_vpc.selected.id
+resource "aws_internet_gateway" "app" {
+  count         = var.vpc_id == null ? 1 : 0
+  vpc_id        = data.aws_vpc.selected.id
 
   tags        = merge(local.default_tags, {
-    Name      = "${var.environment}-${var.app_name}-internet-gw"
+    Name      = "${local.app_name}-internet-gw"
   })
+}
+
+data "aws_internet_gateway" "existing" {
+  count       = var.vpc_id == null ? 0 : 1
+
+  filter {
+    name = "attachment.vpc-id"
+    values = [var.vpc_id]
+  }
+}
+
+data "aws_internet_gateway" "selected" {
+  internet_gateway_id = var.vpc_id == null ? element(aws_internet_gateway.app.*.id, 0) : element(data.aws_internet_gateway.existing.*.id, 0)
 }
 
 # Route the public subnet traffic through the IGW
 resource "aws_route" "internet_access" {
   route_table_id         = data.aws_vpc.selected.main_route_table_id
   destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.gw.id
+  gateway_id             = data.aws_internet_gateway.selected.id
 }
 
 # Create a NAT gateway with an Elastic IP for each private subnet to get internet connectivity
@@ -91,7 +105,7 @@ resource "aws_nat_gateway" "gw" {
   allocation_id = element(aws_eip.gw.*.id, count.index)
 
   tags          = merge(local.default_tags, {
-    Name        = "${var.environment}-${var.app_name}-nat-gw"
+    Name        = "${local.app_name}-nat-gw"
   })
 }
 
@@ -106,7 +120,7 @@ resource "aws_route_table" "private" {
   }
 
   tags          = merge(local.default_tags, {
-    Name        = "${var.environment}-${var.app_name}-private-route-table"
+    Name        = "${local.app_name}-private-route-table"
   })
 }
 

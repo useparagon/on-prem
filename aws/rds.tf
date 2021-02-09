@@ -1,17 +1,17 @@
 resource "aws_db_subnet_group" "postgres" {
-  name                                      = "${var.environment}-${var.app_name}-postgres-subnet"
-  description                               = "${var.environment}-${var.app_name} postgres subnet group"
+  name                                      = "${local.app_name}-postgres-subnet"
+  description                               = "${local.app_name} postgres subnet group"
   subnet_ids                                = aws_subnet.private.*.id
 
   tags = {
-    Name                                    = "${var.environment}-${var.app_name}-postgres-subnet"
+    Name                                    = "${local.app_name}-postgres-subnet"
     Environment                             = var.environment
     Terraform                               = "true"
   }
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier                                = "${var.environment}-${var.app_name}"
+  identifier                                = local.app_name
   name                                      = "postgres"
   port                                      = "5432"
   username                                  = var.postgres_root_username
@@ -49,12 +49,12 @@ resource "aws_db_instance" "postgres" {
   apply_immediately                         = true
 
   tags                                      = merge(local.default_tags, {
-    Name                                    = "${var.environment}-${var.app_name}-postgres"
+    Name                                    = "${local.app_name}-postgres"
   })
 }
 
 resource "aws_db_parameter_group" "postgres" {
-  name                                      = "${var.environment}-${var.app_name}-postgres"
+  name                                      = "${local.app_name}-postgres"
   family                                    = "postgres11"
 
   dynamic "parameter" {
@@ -82,6 +82,6 @@ resource "aws_db_parameter_group" "postgres" {
   }
 
   tags                                      = merge(local.default_tags, {
-    Name                                    = "${var.environment}-${var.app_name}-postgres-group"
+    Name                                    = "${local.app_name}-postgres-group"
   })
 }

@@ -8,6 +8,6 @@ resource "aws_acm_certificate" "ssl" {
   }
 
   tags = merge(local.default_tags, {
-    Name              = "${var.environment}-${var.app_name}-ssl"
+    Name              = "${local.app_name}-ssl"
   })
 }
