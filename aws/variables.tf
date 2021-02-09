@@ -20,32 +20,19 @@ variable "aws_secret_access_key" {
   description = "AWS Secret Access Key for AWS account to provision resources on."
 }
 
-variable "postgres_root_username" {
-  description = "Username for the Postgres root user."
-}
-
-variable "postgres_root_password" {
-  description = "Password for the Postgres root user."
-}
-
 variable "az_count" {
   description = "Number of AZs to cover in a given region."
   default     = "2"
 }
 
+variable "vpc_id" {
+  description = "Optional id of an existing VPC to create resources in."
+  default     = null
+}
+
 variable "vpc_cidr" {
   description = "CIDR for the VPC."
   default     = "10.0.0.0/16"
-}
-
-variable "fargate_cpu" {
-  description = "Fargate instance CPU units to provision (1 vCPU = 1024 CPU units)."
-  default     = "1024"
-}
-
-variable "fargate_memory" {
-  description = "Fargate instance memory to provision (in MiB)."
-  default     = "2048"
 }
 
 variable "health_check_path" {
@@ -61,9 +48,18 @@ variable "private_key" {
   description = "The private key for the EC2 instance."
 }
 
+# Currently unused
 variable "ssl_domain" {
   description = "The domain that your SSL certificate is registered to."
   default     = ""
+}
+
+variable "postgres_root_username" {
+  description = "Username for the Postgres root user."
+}
+
+variable "postgres_root_password" {
+  description = "Password for the Postgres root user."
 }
 
 variable "elasticache_node_type" {
