@@ -4,18 +4,10 @@ resource "aws_security_group" "alb" {
   vpc_id      = data.aws_vpc.selected.id
 
   ingress {
-    description = "Allow inbound secure HTTP traffic from anywhere."
+    description = "Allow inbound traffic."
     protocol    = "tcp"
-    from_port   = 443
-    to_port     = 443
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Allow inbound nonsecure HTTP traffic from anywhere."
-    protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
+    from_port   = var.ssl_domain != "" ? 443 : 80
+    to_port     = var.ssl_domain != "" ? 443 : 80
     cidr_blocks = ["0.0.0.0/0"]
   }
 
