@@ -56,6 +56,33 @@ prepareTerraform() {
     echo "⚠️  SSL_DOMAIN is empty. Please add it to your \".env-aws\" file to add SSL support."
   fi
 
+  # ensure SSL configuration properly set if provided
+  CERBERUS_PUBLIC_URL=$(grep CERBERUS_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  HERCULES_PUBLIC_URL=$(grep HERCULES_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  HERMES_PUBLIC_URL=$(grep HERMES_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  REST_API_PUBLIC_URL=$(grep REST_API_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  WEB_APP_PUBLIC_URL=$(grep WEB_APP_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  PASSPORT_PUBLIC_URL=$(grep PASSPORT_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  if [ "$SSL_DOMAIN" != "" -a "$CERBERUS_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but CERBERUS_PUBLIC_URL is empty. Please provided a CERBERUS_PUBLIC_URL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$HERCULES_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but HERCULES_PUBLIC_URL is empty. Please provided a HERCULES_PUBLIC_URL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$HERMES_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but HERMES_PUBLIC_URL is empty. Please provided a HERMES_PUBLIC_URL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$REST_API_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but REST_API_PUBLIC_URL is empty. Please provided a REST_API_PUBLIC_URL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$WEB_APP_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but WEB_APP_PUBLIC_URL is empty. Please provided a WEB_APP_PUBLIC_URL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$PASSPORT_PUBLIC_URL" == "" ]; then
+    echo "❌ SSL_DOMAIN is configured but PASSPORT_PUBLIC_URL is empty. Please provided a PASSPORT_PUBLIC_URL."
+    exit 1
+  fi
+
   # optional variables
   if [ "$ELASTICACHE_NODE_TYPE" == "" ]; then
     RDS_INSTANCE_CLASS = "cache.r4.xlarge"
@@ -120,12 +147,15 @@ updateDockerVariables() {
   # get the application load balancers, s3, postgres and elasticache config + update the environment variables
   TERRAFORM_OUTPUT=$(cd $TF_DIR && terraform output -json)
 
-  sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.cerberus')" $1
-  sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hercules')" $1
-  sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hermes')" $1
-  sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["rest-api"]')" $1
-  sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["web-app"]')" $1
-  sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.passport')" $1
+  # if the user provies a custom domain, we don't want to override their public url settings
+  if [ "$SSL_DOMAIN" == "" ]; then
+    sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.cerberus')" $1
+    sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hercules')" $1
+    sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hermes')" $1
+    sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["rest-api"]')" $1
+    sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["web-app"]')" $1
+    sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.passport')" $1
+  fi
 
   sed -i "/^REDIS_URL=/c\REDIS_URL=$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.host'):$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.port')" $1
 

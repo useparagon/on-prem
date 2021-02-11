@@ -50,7 +50,7 @@ resource "aws_alb_listener" "microservice_https" {
 }
 
 resource "aws_alb_listener" "microservice_http" {
-  for_each          = local.microservices
+  for_each          = var.ssl_domain == "" ? local.microservices : {}
   load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 80
   protocol          = "HTTP"
