@@ -63,6 +63,29 @@ variable "ssl_domain" {
   default     = ""
 }
 
+variable "acl_policy" {
+  description = "The access control list for the albs. Must be `public` or `private`."
+  type        = string
+  default     = "public"
+  validation {
+    condition     = contains(["public", "private"], var.acl_policy)
+    error_message = "The `acl_policy` must be either `public` or `private`."
+  }
+}
+
+variable "acl_public" {
+  description = "An optional list of microservices to allow public access to if `acl_policy` is `private`."
+  type        = list(string)
+  default     = []
+  # TODO: validate that the values passed are valid microservices
+}
+
+variable "ip_whitelist" {
+  description = "An optional list of IP addresses to whitelist access to for microservices with private acl."
+  type        = list(string)  
+  default     = []
+}
+
 variable "postgres_root_username" {
   description = "Username for the Postgres root user."
 }
@@ -91,6 +114,11 @@ locals {
     "passport"  = 1706
     "rest-api"  = 1703
     "web-app"   = 1704
+  }
+
+  microservice_acls = {
+    for key, value in local.microservices:
+    key => var.acl_policy == "public" ? "public" : (contains(var.acl_public, key) ? "public" : "private")
   }
 
   ec2s = {

@@ -30,6 +30,9 @@ prepareTerraform() {
   POSTGRES_ROOT_USERNAME=$(grep POSTGRES_ROOT_USERNAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_PASSWORD=$(grep POSTGRES_ROOT_PASSWORD $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ACL_POLICY=$(grep ACL_POLICY $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ACL_PUBLIC=$(grep ACL_PUBLIC $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  IP_WHITELIST=$(grep IP_WHITELIST $CACHE_DIR/.env-aws | cut -d '=' -f2)
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
@@ -125,6 +128,24 @@ prepareTerraform() {
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
+
+  if [ "$ACL_POLICY" != "" ]; then
+    echo "acl_policy=\"$ACL_POLICY\"" >> $TF_VARS_FILE
+  fi
+
+  if [ "$ACL_PUBLIC" != "" ]; then
+    FORMATTED_ACL_PUBLIC=$(echo $ACL_PUBLIC | sed 's|,|","|g;s|.*|"&"|')
+    echo "acl_public=[$FORMATTED_ACL_PUBLIC]" >> $TF_VARS_FILE
+  fi
+
+  if [ "$IP_WHITELIST" != "" ]; then
+    FORMATTED_IP_WHITELIST=$(echo $IP_WHITELIST | sed 's|,|","|g;s|.*|"&"|')
+    echo "ip_whitelist=[$FORMATTED_IP_WHITELIST]" >> $TF_VARS_FILE
+  fi
+  
+  # if [ "$IP_WHITELIST" != "" ]; then
+  #   echo "ip_whitelist=\"$IP_WHITELIST\"" >> $TF_VARS_FILE
+  # fi  
 
   echo "public_key=<<EOF" >> $TF_VARS_FILE
   echo "$PUBLIC_KEY" >> $TF_VARS_FILE

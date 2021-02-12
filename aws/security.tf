@@ -1,35 +1,92 @@
-resource "aws_security_group" "alb" {
-  name        = "${local.app_name}-alb-sg"
-  description = "Controls access to the ALB"
+locals {
+  alb_security_groups = {
+    private = aws_security_group.alb_private
+    public  = aws_security_group.alb_public
+  }
+}
+
+resource "aws_security_group" "alb_private" {
+  name        = "${local.app_name}-alb-private"
+  description = "Allows whitelisted access to the alb."
   vpc_id      = data.aws_vpc.selected.id
 
-  ingress {
-    description = "Allow inbound traffic."
-    protocol    = "tcp"
-    from_port   = var.ssl_domain != "" ? 443 : 80
-    to_port     = var.ssl_domain != "" ? 443 : 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+  tags              = merge(local.default_tags, {
+    Name            = "${local.app_name}-alb-private"
+  })
+}
 
-  egress {
-    description     = "Allow outbound HTTP traffic to the public subnet."
-    protocol        = "tcp"
-    from_port       = 80
-    to_port         = 9999
-    cidr_blocks     = aws_subnet.public.*.cidr_block
-  }
-
-  egress {
-    description     = "Allow outbound HTTP traffic to the private subnet."
-    protocol        = "tcp"
-    from_port       = 80
-    to_port         = 9999
-    cidr_blocks     = aws_subnet.private.*.cidr_block
-  }
+resource "aws_security_group" "alb_public" {
+  name        = "${local.app_name}-alb-public"
+  description = "Allows public access to the alb."
+  vpc_id      = data.aws_vpc.selected.id
 
   tags              = merge(local.default_tags, {
-    Name            = "${local.app_name}-alb-access"
+    Name            = "${local.app_name}-alb-public"
   })
+}
+
+resource "aws_security_group_rule" "ingress_private" {
+  description               = "Allow inbound traffic from whitelisted ips."
+  type                      = "ingress"
+  protocol                  = "tcp"
+  from_port                 = var.ssl_domain != "" ? 443 : 80
+  to_port                   = var.ssl_domain != "" ? 443 : 80
+  security_group_id         = aws_security_group.alb_private.id
+  cidr_blocks               = var.ip_whitelist
+}
+
+resource "aws_security_group_rule" "ingress_public" {
+  description               = "Allow inbound traffic from anywhere."
+  type                      = "ingress"
+  protocol                  = "tcp"
+  from_port                 = var.ssl_domain != "" ? 443 : 80
+  to_port                   = var.ssl_domain != "" ? 443 : 80
+  security_group_id         = aws_security_group.alb_public.id
+  cidr_blocks               = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "ingress_alb_private" {
+  for_each                  = local.alb_security_groups
+  description               = "Allow inbound traffic from the private albs."
+  type                      = "ingress"
+  protocol                  = "tcp"
+  from_port                 = var.ssl_domain != "" ? 443 : 80
+  to_port                   = var.ssl_domain != "" ? 443 : 80
+  security_group_id         = each.value.id
+  source_security_group_id  = aws_security_group.alb_private.id
+}
+
+resource "aws_security_group_rule" "ingress_alb_public" {
+  for_each                  = local.alb_security_groups
+  description               = "Allow inbound traffic from the public albs."
+  type                      = "ingress"
+  protocol                  = "tcp"
+  from_port                 = var.ssl_domain != "" ? 443 : 80
+  to_port                   = var.ssl_domain != "" ? 443 : 80
+  security_group_id         = each.value.id
+  source_security_group_id  = aws_security_group.alb_public.id
+}
+
+resource "aws_security_group_rule" "egress_public_subnet" {
+  for_each          = local.alb_security_groups
+  description       = "Allow outbound HTTP traffic to the public subnet."
+  type              = "egress"
+  protocol          = "tcp"
+  from_port         = 80
+  to_port           = 9999
+  cidr_blocks       = aws_subnet.public.*.cidr_block
+  security_group_id = each.value.id
+}
+
+resource "aws_security_group_rule" "egress_private_subnet" {
+  for_each          = local.alb_security_groups
+  description       = "Allow outbound HTTP traffic to the private subnet."
+  type              = "egress"
+  protocol          = "tcp"
+  from_port         = 80
+  to_port           = 9999
+  cidr_blocks       = aws_subnet.private.*.cidr_block
+  security_group_id = each.value.id
 }
 
 resource "aws_security_group" "ec2" {
@@ -38,19 +95,19 @@ resource "aws_security_group" "ec2" {
   vpc_id            = data.aws_vpc.selected.id
 
   ingress {
-    description     = "Allow inbound SSH traffic"
+    description     = "Allow inbound SSH traffic from whitelisted IPs."
     protocol        = "tcp"
     from_port       = 22
     to_port         = 22
-    cidr_blocks     = ["0.0.0.0/0"]
+    cidr_blocks     = var.ip_whitelist
   }
 
   ingress {
-    description     = "Allow inbound HTTP traffic from the alb"
+    description     = "Allow inbound HTTP traffic from the alb."
     protocol        = "tcp"
     from_port       = 80
     to_port         = 9999
-    security_groups = [aws_security_group.alb.id]
+    security_groups = [aws_security_group.alb_private.id, aws_security_group.alb_public.id]
   }
 
   ingress {

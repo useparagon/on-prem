@@ -2,7 +2,7 @@ resource "aws_alb" "microservice" {
   for_each        = local.microservices
   name            = "${local.app_name}-${each.key}-alb"
   subnets         = aws_subnet.public.*.id
-  security_groups = [aws_security_group.alb.id]
+  security_groups = [local.microservice_acls[each.key] == "public" ? aws_security_group.alb_public.id : aws_security_group.alb_private.id]
 }
 
 resource "aws_alb_target_group" "microservice" {
