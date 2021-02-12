@@ -69,25 +69,25 @@ prepareTerraform() {
   WEB_APP_PUBLIC_URL=$(grep WEB_APP_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   PASSPORT_PUBLIC_URL=$(grep PASSPORT_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   if [ "$SSL_DOMAIN" == "" -a "$SSL_ONLY" == "true" ]; then
-    echo "❌ SSL_DOMAIN is not configured but SSL_ONLY is set to true. Please provided SSL_DOMAIN to force SSL."
+    echo "❌ `SSL_DOMAIN` is not configured but SSL_ONLY is set to true. You'll need to configure `SSL_DOMAIN` to force SSL."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$CERBERUS_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but CERBERUS_PUBLIC_URL is empty. Please provided a CERBERUS_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `CERBERUS_PUBLIC_URL` is empty. You'll need to configure `CERBERUS_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$HERCULES_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but HERCULES_PUBLIC_URL is empty. Please provided a HERCULES_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `HERCULES_PUBLIC_URL` is empty. You'll need to configure `HERCULES_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$HERMES_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but HERMES_PUBLIC_URL is empty. Please provided a HERMES_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `HERMES_PUBLIC_URL` is empty. You'll need to configure `HERMES_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$REST_API_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but REST_API_PUBLIC_URL is empty. Please provided a REST_API_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `REST_API_PUBLIC_URL` is empty. You'll need to configure `REST_API_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$WEB_APP_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but WEB_APP_PUBLIC_URL is empty. Please provided a WEB_APP_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `WEB_APP_PUBLIC_URL` is empty. You'll need to configure `WEB_APP_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$PASSPORT_PUBLIC_URL" == "" ]; then
-    echo "❌ SSL_DOMAIN is configured but PASSPORT_PUBLIC_URL is empty. Please provided a PASSPORT_PUBLIC_URL."
+    echo "❌ `SSL_DOMAIN` is configured but `PASSPORT_PUBLIC_URL` is empty. You'll need to configure `PASSPORT_PUBLIC_URL`."
     exit 1
   fi
 
