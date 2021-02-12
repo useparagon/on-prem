@@ -1,5 +1,5 @@
 resource "aws_acm_certificate" "ssl" {
-  count                     = var.ssl_domain != "" ? 1 : 0
+  count                     = var.ssl_domain != null ? 1 : 0
   domain_name               = "*.${var.ssl_domain}"
   subject_alternative_names = [ var.ssl_domain ]
   validation_method         = "DNS"

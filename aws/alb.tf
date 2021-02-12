@@ -37,7 +37,7 @@ resource "aws_alb_target_group_attachment" "microservice" {
 }
 
 resource "aws_alb_listener" "microservice_https" {
-  for_each          = var.ssl_domain != "" ? local.microservices : {}
+  for_each          = var.ssl_domain != null ? local.microservices : {}
   load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 443
   protocol          = "HTTPS"
@@ -50,7 +50,7 @@ resource "aws_alb_listener" "microservice_https" {
 }
 
 resource "aws_alb_listener" "microservice_http" {
-  for_each          = var.ssl_domain == "" ? local.microservices : {}
+  for_each          = var.ssl_only == true ? {} : local.microservices
   load_balancer_arn = aws_alb.microservice[each.key].id
   port              = 80
   protocol          = "HTTP"

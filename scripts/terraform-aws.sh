@@ -30,9 +30,11 @@ prepareTerraform() {
   POSTGRES_ROOT_USERNAME=$(grep POSTGRES_ROOT_USERNAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
   POSTGRES_ROOT_PASSWORD=$(grep POSTGRES_ROOT_PASSWORD $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  SSL_ONLY=$(grep SSL_ONLY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_POLICY=$(grep ACL_POLICY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_PUBLIC=$(grep ACL_PUBLIC $CACHE_DIR/.env-aws | cut -d '=' -f2)
   IP_WHITELIST=$(grep IP_WHITELIST $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ALB_SECURITY_GROUP=$(grep ALB_SECURITY_GROUP $CACHE_DIR/.env-aws | cut -d '=' -f2)
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
@@ -66,7 +68,10 @@ prepareTerraform() {
   REST_API_PUBLIC_URL=$(grep REST_API_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   WEB_APP_PUBLIC_URL=$(grep WEB_APP_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   PASSPORT_PUBLIC_URL=$(grep PASSPORT_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
-  if [ "$SSL_DOMAIN" != "" -a "$CERBERUS_PUBLIC_URL" == "" ]; then
+  if [ "$SSL_DOMAIN" == "" -a "$SSL_ONLY" == "true" ]; then
+    echo "❌ SSL_DOMAIN is not configured but SSL_ONLY is set to true. Please provided SSL_DOMAIN to force SSL."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$CERBERUS_PUBLIC_URL" == "" ]; then
     echo "❌ SSL_DOMAIN is configured but CERBERUS_PUBLIC_URL is empty. Please provided a CERBERUS_PUBLIC_URL."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$HERCULES_PUBLIC_URL" == "" ]; then
@@ -128,6 +133,7 @@ prepareTerraform() {
   echo "postgres_root_username=\"$POSTGRES_ROOT_USERNAME\"" >> $TF_VARS_FILE
   echo "postgres_root_password=\"$POSTGRES_ROOT_PASSWORD\"" >> $TF_VARS_FILE
   echo "ssl_domain=\"$SSL_DOMAIN\"" >> $TF_VARS_FILE
+  echo "ssl_only=$SSL_ONLY" >> $TF_VARS_FILE
 
   if [ "$ACL_POLICY" != "" ]; then
     echo "acl_policy=\"$ACL_POLICY\"" >> $TF_VARS_FILE
@@ -141,6 +147,10 @@ prepareTerraform() {
   if [ "$IP_WHITELIST" != "" ]; then
     FORMATTED_IP_WHITELIST=$(echo $IP_WHITELIST | sed 's|,|","|g;s|.*|"&"|')
     echo "ip_whitelist=[$FORMATTED_IP_WHITELIST]" >> $TF_VARS_FILE
+  fi
+
+  if [ "$ALB_SECURITY_GROUP" != "" ]; then
+    echo "alb_security_group=\"$ALB_SECURITY_GROUP\"" >> $TF_VARS_FILE
   fi
   
   # if [ "$IP_WHITELIST" != "" ]; then
