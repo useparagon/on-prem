@@ -3,6 +3,59 @@ locals {
     private = aws_security_group.alb_private
     public  = aws_security_group.alb_public
   }
+
+  alb_ports = var.ssl_domain != null ? (var.ssl_only ? {
+    https   = 443
+  } :{
+    https   = 443
+    http    = 80
+  }) : {
+    http    = 80
+  }
+
+  # creates an array of configurations for external alb access
+  # it contains the whitelisted ips and custom security groups mapped to allowed ports.
+  alb_external_access_config_list = flatten([
+    flatten([
+      for ip in var.ip_whitelist: [
+        for protocol, port in local.alb_ports: {
+          "key"         = "ip-${ip}:${port}"
+          "type"        = "ip"
+          "value"       = ip
+          "port"        = port
+          "description" = "Allow access from a whitelisted IP."
+        }
+      ]
+    ]),
+    var.alb_security_group == null ? [] : flatten([
+      for protocol, port in local.alb_ports: {
+        "key"         = "${var.alb_security_group}-${port}"
+        "type"        = "sg"
+        "value"       = var.alb_security_group
+        "port"        = port
+        "description" = "Allow access from a custom security group."
+      }
+    ])
+  ])
+
+  private_alb_external_access_config_map = {
+    for item in local.alb_external_access_config_list:
+    item.key => item
+  }
+
+  public_access_config_list = flatten([
+    for protocol, port in local.alb_ports: {
+      "key"         = "public-access-${port}"
+      "type"        = "ip"
+      "value"       = "0.0.0.0/0"
+      "port"        = port
+      "description" = "Allow access from anywhere."
+    }
+  ])
+
+  public_alb_external_access_config_map = merge(local.private_alb_external_access_config_map, {
+    for item in local.public_access_config_list: item.key => item
+  })
 }
 
 resource "aws_security_group" "alb_private" {
@@ -26,23 +79,27 @@ resource "aws_security_group" "alb_public" {
 }
 
 resource "aws_security_group_rule" "ingress_private" {
-  description               = "Allow inbound traffic from whitelisted ips."
+  for_each                  = local.private_alb_external_access_config_map
+  description               = each.value.description
   type                      = "ingress"
   protocol                  = "tcp"
-  from_port                 = var.ssl_domain != "" ? 443 : 80
-  to_port                   = var.ssl_domain != "" ? 443 : 80
+  from_port                 = each.value.port
+  to_port                   = each.value.port
   security_group_id         = aws_security_group.alb_private.id
-  cidr_blocks               = var.ip_whitelist
+  source_security_group_id  = each.value.type == "sg" ? each.value.value : null
+  cidr_blocks               = each.value.type == "ip" ? [each.value.value] : null
 }
 
 resource "aws_security_group_rule" "ingress_public" {
-  description               = "Allow inbound traffic from anywhere."
+  for_each                  = local.public_alb_external_access_config_map
+  description               = each.value.description
   type                      = "ingress"
   protocol                  = "tcp"
-  from_port                 = var.ssl_domain != "" ? 443 : 80
-  to_port                   = var.ssl_domain != "" ? 443 : 80
+  from_port                 = each.value.port
+  to_port                   = each.value.port
   security_group_id         = aws_security_group.alb_public.id
-  cidr_blocks               = ["0.0.0.0/0"]
+  source_security_group_id  = each.value.type == "sg" ? each.value.value : null
+  cidr_blocks               = each.value.type == "ip" ? [each.value.value] : null
 }
 
 resource "aws_security_group_rule" "ingress_alb_private" {
@@ -50,8 +107,8 @@ resource "aws_security_group_rule" "ingress_alb_private" {
   description               = "Allow inbound traffic from the private albs."
   type                      = "ingress"
   protocol                  = "tcp"
-  from_port                 = var.ssl_domain != "" ? 443 : 80
-  to_port                   = var.ssl_domain != "" ? 443 : 80
+  from_port                 = var.ssl_domain != null ? 443 : 80
+  to_port                   = var.ssl_domain != null ? 443 : 80
   security_group_id         = each.value.id
   source_security_group_id  = aws_security_group.alb_private.id
 }
@@ -61,8 +118,8 @@ resource "aws_security_group_rule" "ingress_alb_public" {
   description               = "Allow inbound traffic from the public albs."
   type                      = "ingress"
   protocol                  = "tcp"
-  from_port                 = var.ssl_domain != "" ? 443 : 80
-  to_port                   = var.ssl_domain != "" ? 443 : 80
+  from_port                 = var.ssl_domain != null ? 443 : 80
+  to_port                   = var.ssl_domain != null ? 443 : 80
   security_group_id         = each.value.id
   source_security_group_id  = aws_security_group.alb_public.id
 }

@@ -57,10 +57,16 @@ variable "private_key" {
   description = "The private key for the EC2 instance."
 }
 
-# Currently unused
 variable "ssl_domain" {
   description = "The domain that your SSL certificate is registered to."
-  default     = ""
+  type        = string
+  default     = null
+}
+
+variable "ssl_only" {
+  description = "Whether or not to only accept HTTPS connections."
+  type        = bool
+  default     = false
 }
 
 variable "acl_policy" {
@@ -84,6 +90,12 @@ variable "ip_whitelist" {
   description = "An optional list of IP addresses to whitelist access to for microservices with private acl."
   type        = list(string)  
   default     = []
+}
+
+variable "alb_security_group" {
+  description = "An optional security group created outside of Terraform to apply to the albs."
+  type        = string
+  default     = null
 }
 
 variable "postgres_root_username" {
