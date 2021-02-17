@@ -1,8 +1,12 @@
 resource "aws_alb" "microservice" {
-  for_each        = local.microservices
-  name            = "${local.app_name}-${each.key}-alb"
-  subnets         = aws_subnet.public.*.id
-  security_groups = [local.microservice_acls[each.key] == "public" ? aws_security_group.alb_public.id : aws_security_group.alb_private.id]
+  for_each                    = local.microservices
+  name                        = "${local.app_name}-${each.key}-alb"
+  subnets                     = aws_subnet.public.*.id
+  security_groups             = distinct(concat(
+    [local.microservice_acls[each.key] == "public" ? aws_security_group.alb_public.id : aws_security_group.alb_private.id],
+    var.alb_external_security_groups
+  ))
+  enable_deletion_protection  = true
 }
 
 resource "aws_alb_target_group" "microservice" {
