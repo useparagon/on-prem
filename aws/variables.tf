@@ -86,16 +86,22 @@ variable "acl_public" {
   # TODO: validate that the values passed are valid microservices
 }
 
+variable "acl_public_ip_override" {
+  description = "An optional list of IP addresses to whitelist access public access."
+  type        = list(string)  
+  default     = ["0.0.0.0./0"]
+}
+
 variable "ip_whitelist" {
   description = "An optional list of IP addresses to whitelist access to for microservices with private acl."
   type        = list(string)  
   default     = []
 }
 
-variable "alb_security_group" {
-  description = "An optional security group created outside of Terraform to apply to the albs."
-  type        = string
-  default     = null
+variable "alb_external_security_groups" {
+  description = "An optional list security groups created outside of Terraform to apply to the albs."
+  type        = list(string)
+  default     = []
 }
 
 variable "postgres_root_username" {

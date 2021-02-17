@@ -44,8 +44,9 @@ prepareTerraform() {
   SSL_ONLY=$(grep SSL_ONLY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_POLICY=$(grep ACL_POLICY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_PUBLIC=$(grep ACL_PUBLIC $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ACL_PUBLIC_IP_OVERRIDE=$(grep ACL_PUBLIC_IP_OVERRIDE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   IP_WHITELIST=$(grep IP_WHITELIST $CACHE_DIR/.env-aws | cut -d '=' -f2)
-  ALB_SECURITY_GROUP=$(grep ALB_SECURITY_GROUP $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ALB_EXTERNAL_SECURITY_GROUPS=$(grep ALB_EXTERNAL_SECURITY_GROUPS $CACHE_DIR/.env-aws | cut -d '=' -f2)
   PUBLIC_KEY=$(cat $SECURE_DIR/id_rsa.pub)
   PRIVATE_KEY=$(cat $SECURE_DIR/id_rsa)
 
@@ -155,13 +156,19 @@ prepareTerraform() {
     echo "acl_public=[$FORMATTED_ACL_PUBLIC]" >> $TF_VARS_FILE
   fi
 
+  if [ "$ACL_PUBLIC_IP_OVERRIDE" != "" ]; then
+    FORMATTED_ACL_PUBLIC_IP_OVERRIDE=$(echo $ACL_PUBLIC_IP_OVERRIDE | sed 's|,|","|g;s|.*|"&"|')
+    echo "acl_public_ip_override=[$FORMATTED_ACL_PUBLIC_IP_OVERRIDE]" >> $TF_VARS_FILE
+  fi
+
   if [ "$IP_WHITELIST" != "" ]; then
     FORMATTED_IP_WHITELIST=$(echo $IP_WHITELIST | sed 's|,|","|g;s|.*|"&"|')
     echo "ip_whitelist=[$FORMATTED_IP_WHITELIST]" >> $TF_VARS_FILE
   fi
 
-  if [ "$ALB_SECURITY_GROUP" != "" ]; then
-    echo "alb_security_group=\"$ALB_SECURITY_GROUP\"" >> $TF_VARS_FILE
+  if [ "$ALB_EXTERNAL_SECURITY_GROUPS" != "" ]; then
+    FORMATTED_ALB_EXTERNAL_SECURITY_GROUPS=$(echo $ALB_EXTERNAL_SECURITY_GROUPS | sed 's|,|","|g;s|.*|"&"|')
+    echo "alb_external_security_groups=\"$FORMATTED_ALB_EXTERNAL_SECURITY_GROUPS\"" >> $TF_VARS_FILE
   fi
 
   echo "public_key=<<EOF" >> $TF_VARS_FILE
