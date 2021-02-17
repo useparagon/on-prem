@@ -17,12 +17,23 @@ prepareTerraform() {
     cp $SECURE_DIR/.env-aws $CACHE_DIR/.env-aws
   fi
 
+  if [ -f "$SECURE_DIR/terraform.tfstate" ]; then
+    cp $SECURE_DIR/terraform.tfstate $TF_DIR/terraform.tfstate
+  fi
+
   # Load variables
   ORGANIZATION=$(grep ORGANIZATION $CACHE_DIR/.env-aws | cut -d '=' -f2)
   APP_NAME=$(grep APP_NAME $CACHE_DIR/.env-aws | cut -d '=' -f2)
+
+  TF_BACKEND=$(grep TF_BACKEND $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  TF_TOKEN=$(grep TF_TOKEN $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  TF_ORG=$(grep TF_ORG $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  TF_WORKSPACE=$(grep TF_WORKSPACE $CACHE_DIR/.env-aws | cut -d '=' -f2)
+
   AWS_ACCESS_KEY_ID=$(grep AWS_ACCESS_KEY_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_SECRET_ACCESS_KEY=$(grep AWS_SECRET_ACCESS_KEY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   AWS_REGION=$(grep AWS_REGION $CACHE_DIR/.env-aws | cut -d '=' -f2)
+
   VPC_ID=$(grep VPC_ID $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ELASTICACHE_NODE_TYPE=$(grep ELASTICACHE_NODE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   EC2_INSTANCE_TYPE=$(grep EC2_INSTANCE_TYPE $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -152,10 +163,6 @@ prepareTerraform() {
   if [ "$ALB_SECURITY_GROUP" != "" ]; then
     echo "alb_security_group=\"$ALB_SECURITY_GROUP\"" >> $TF_VARS_FILE
   fi
-  
-  # if [ "$IP_WHITELIST" != "" ]; then
-  #   echo "ip_whitelist=\"$IP_WHITELIST\"" >> $TF_VARS_FILE
-  # fi  
 
   echo "public_key=<<EOF" >> $TF_VARS_FILE
   echo "$PUBLIC_KEY" >> $TF_VARS_FILE
@@ -169,9 +176,40 @@ prepareTerraform() {
   echo "⏱  Preparing \"main.tf\"..."
   cp $TF_DIR/templates/main.tpl.tf $TF_DIR/main.tf
   sed -i -e "s~__AWS_REGION__~$AWS_REGION~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
+
+  if [ "$TF_BACKEND" == "" ] || [ "$TF_BACKEND" == "local" ]; then
+    echo "ℹ️  Preparing local terraform configuration."
+    TF_CONFIG="backend \"local\" {\n"
+    TF_CONFIG="$TF_CONFIG    path     = \"../../.secure/terraform.tfstate\"\n"
+    TF_CONFIG="$TF_CONFIG  }"
+    sed -i -e "s~__TF_CONFIG__ {}~$TF_CONFIG~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
+  elif [ "$TF_BACKEND" == "remote" ]; then
+    echo "ℹ️  Preparing remote terraform configuration."
+    TF_CONFIG="backend \"remote\" {\n"
+    TF_CONFIG="$TF_CONFIG    hostname     = \"app.terraform.io\"\n"
+    TF_CONFIG="$TF_CONFIG    organization = \"$TF_ORG\"\n"
+    TF_CONFIG="$TF_CONFIG    token        = \"$TF_TOKEN\"\n\n"
+    TF_CONFIG="$TF_CONFIG    workspaces {\n"
+    TF_CONFIG="$TF_CONFIG      name       = \"$TF_WORKSPACE\"\n"
+    TF_CONFIG="$TF_CONFIG    }\n"
+    TF_CONFIG="$TF_CONFIG  }"
+    sed -i -e "s~__TF_CONFIG__ {}~$TF_CONFIG~g" $TF_DIR/main.tf >> $TF_DIR/main.tf
+  else
+    echo "❌  Invalid value specified for `TF_CONFIG`. Valid values are `remote` and `local`."
+    exit 1
+  fi
+
   echo "✅ Prepared \"main.tf\""
 
   (cd $TF_DIR && terraform init)
+
+  if [ -f "$SECURE_DIR/terraform.tfstate" -a "$TF_CONFIG" == "remote" ]; then
+    mv $SECURE_DIR/terraform.tfstate $SECURE_DIR/terraform-migrated.tfstate
+
+    if [ -f "$TF_DIR/terraform.tfstate" ]; then
+      rm $TF_DIR/terraform.tfstate
+    fi
+  fi
 }
 
 updateDockerVariables() {

@@ -7,7 +7,5 @@ terraform {
     }
   }
 
-  backend "local" {
-    path = "../../.secure/terraform.tfstate"
-  }
+  __TF_CONFIG__ {}
 }
