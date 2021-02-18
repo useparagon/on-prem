@@ -79,7 +79,7 @@ variable "acl_policy" {
   }
 }
 
-variable "acl_public" {
+variable "acl_public_services" {
   description = "An optional list of microservices to allow public access to if `acl_policy` is `private`."
   type        = list(string)
   default     = []
@@ -136,7 +136,7 @@ locals {
 
   microservice_acls = {
     for key, value in local.microservices:
-    key => var.acl_policy == "public" ? "public" : (contains(var.acl_public, key) ? "public" : "private")
+    key => var.acl_policy == "public" ? "public" : (contains(var.acl_public_services, key) ? "public" : "private")
   }
 
   ec2s = {

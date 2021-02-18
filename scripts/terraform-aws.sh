@@ -43,7 +43,7 @@ prepareTerraform() {
   SSL_DOMAIN=$(grep SSL_DOMAIN $CACHE_DIR/.env-aws | cut -d '=' -f2)
   SSL_ONLY=$(grep SSL_ONLY $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_POLICY=$(grep ACL_POLICY $CACHE_DIR/.env-aws | cut -d '=' -f2)
-  ACL_PUBLIC=$(grep ACL_PUBLIC $CACHE_DIR/.env-aws | cut -d '=' -f2)
+  ACL_PUBLIC_SERVICES=$(grep ACL_PUBLIC_SERVICES $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ACL_PUBLIC_IP_OVERRIDE=$(grep ACL_PUBLIC_IP_OVERRIDE $CACHE_DIR/.env-aws | cut -d '=' -f2)
   IP_WHITELIST=$(grep IP_WHITELIST $CACHE_DIR/.env-aws | cut -d '=' -f2)
   ALB_EXTERNAL_SECURITY_GROUPS=$(grep ALB_EXTERNAL_SECURITY_GROUPS $CACHE_DIR/.env-aws | cut -d '=' -f2)
@@ -150,10 +150,10 @@ prepareTerraform() {
   if [ "$ACL_POLICY" != "" ]; then
     echo "acl_policy=\"$ACL_POLICY\"" >> $TF_VARS_FILE
   fi
-
-  if [ "$ACL_PUBLIC" != "" ]; then
-    FORMATTED_ACL_PUBLIC=$(echo $ACL_PUBLIC | sed 's|,|","|g;s|.*|"&"|')
-    echo "acl_public=[$FORMATTED_ACL_PUBLIC]" >> $TF_VARS_FILE
+  
+  if [ "$ACL_PUBLIC_SERVICES" != "" ]; then
+    FORMATTED_ACL_PUBLIC_SERVICES=$(echo $ACL_PUBLIC_SERVICES | sed 's|,|","|g;s|.*|"&"|')
+    echo "acl_public_services=[$FORMATTED_ACL_PUBLIC_SERVICES]" >> $TF_VARS_FILE
   fi
 
   if [ "$ACL_PUBLIC_IP_OVERRIDE" != "" ]; then
@@ -168,7 +168,7 @@ prepareTerraform() {
 
   if [ "$ALB_EXTERNAL_SECURITY_GROUPS" != "" ]; then
     FORMATTED_ALB_EXTERNAL_SECURITY_GROUPS=$(echo $ALB_EXTERNAL_SECURITY_GROUPS | sed 's|,|","|g;s|.*|"&"|')
-    echo "alb_external_security_groups=\"$FORMATTED_ALB_EXTERNAL_SECURITY_GROUPS\"" >> $TF_VARS_FILE
+    echo "alb_external_security_groups=[$FORMATTED_ALB_EXTERNAL_SECURITY_GROUPS]" >> $TF_VARS_FILE
   fi
 
   echo "public_key=<<EOF" >> $TF_VARS_FILE
