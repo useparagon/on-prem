@@ -154,7 +154,10 @@ resource "aws_security_group" "ec2" {
     protocol        = "tcp"
     from_port       = 80
     to_port         = 9999
-    security_groups = [aws_security_group.alb_private.id, aws_security_group.alb_public.id]
+    security_groups = distinct(concat(
+      [aws_security_group.alb_private.id, aws_security_group.alb_public.id],
+      var.alb_external_security_groups
+    ))
   }
 
   ingress {
