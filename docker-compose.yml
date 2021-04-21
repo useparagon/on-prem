@@ -17,8 +17,38 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.3}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-1230}M
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M
+
+  connect:
+    container_name: paragon-connect
+    image: useparagon/on-prem:latest
+    command: ./connect
+    env_file: ./.env-docker
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${CONNECT_PORT:-1707}:${CONNECT_PORT:-1707}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M
+
+  dashboard:
+    container_name: paragon-dashboard
+    image: useparagon/on-prem:latest
+    command: ./dashboard
+    env_file: ./.env-docker
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${DASHBOARD_PORT:-1704}:${DASHBOARD_PORT:-1704}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M
 
   hercules:
     container_name: paragon-hercules
@@ -47,38 +77,8 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.3}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-1230}M
-
-  rest-api:
-    container_name: paragon-api
-    image: useparagon/on-prem:latest
-    command: ./rest-api
-    env_file: ./.env-docker
-    networks:
-      - paragon-on-prem
-    ports:
-      - "${REST_API_PORT:-1703}:${REST_API_PORT:-1703}"
-    volumes:
-      - ./volume:/var/paragon
-    restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.3}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-1230}M
-
-  web-app:
-    container_name: paragon-web
-    image: useparagon/on-prem:latest
-    command: ./web-app
-    env_file: ./.env-docker
-    networks:
-      - paragon-on-prem
-    ports:
-      - "${WEB_APP_PORT:-1704}:${WEB_APP_PORT:-1704}"
-    volumes:
-      - ./volume:/var/paragon
-    restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.3}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-1230}M
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M
 
   passport:
     container_name: paragon-passport
@@ -92,5 +92,20 @@ services:
     volumes:
       - ./volume:/var/paragon
     restart: unless-stopped
-    cpus: "${DOCKER_WEB_CPU:-0.3}"
-    mem_limit: ${DOCKER_WEB_MEMORY:-1230}M
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M
+
+  zeus:
+    container_name: paragon-zeus
+    image: useparagon/on-prem:latest
+    command: ./zeus
+    env_file: ./.env-docker
+    networks:
+      - paragon-on-prem
+    ports:
+      - "${ZEUS_PORT:-1703}:${ZEUS_PORT:-1703}"
+    volumes:
+      - ./volume:/var/paragon
+    restart: unless-stopped
+    cpus: "${DOCKER_WEB_CPU:-0.25}"
+    mem_limit: ${DOCKER_WEB_MEMORY:-1024}M

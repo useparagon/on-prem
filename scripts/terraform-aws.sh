@@ -75,16 +75,23 @@ prepareTerraform() {
 
   # ensure SSL configuration properly set if provided
   CERBERUS_PUBLIC_URL=$(grep CERBERUS_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  CONNECT_PUBLIC_URL=$(grep CONNECT_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  DASHBOARD_PUBLIC_URL=$(grep DASHBOARD_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   HERCULES_PUBLIC_URL=$(grep HERCULES_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   HERMES_PUBLIC_URL=$(grep HERMES_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
-  REST_API_PUBLIC_URL=$(grep REST_API_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
-  WEB_APP_PUBLIC_URL=$(grep WEB_APP_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   PASSPORT_PUBLIC_URL=$(grep PASSPORT_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
+  ZEUS_PUBLIC_URL=$(grep ZEUS_PUBLIC_URL $CACHE_DIR/.env-docker | cut -d '=' -f2)
   if [ "$SSL_DOMAIN" == "" -a "$SSL_ONLY" == "true" ]; then
     echo "❌ `SSL_DOMAIN` is not configured but SSL_ONLY is set to true. You'll need to configure `SSL_DOMAIN` to force SSL."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$CERBERUS_PUBLIC_URL" == "" ]; then
     echo "❌ `SSL_DOMAIN` is configured but `CERBERUS_PUBLIC_URL` is empty. You'll need to configure `CERBERUS_PUBLIC_URL`."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$CONNECT_PUBLIC_URL" == "" ]; then
+    echo "❌ `SSL_DOMAIN` is configured but `CONNECT_PUBLIC_URL` is empty. You'll need to configure `CONNECT_PUBLIC_URL`."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$DASHBOARD_PUBLIC_URL" == "" ]; then
+    echo "❌ `SSL_DOMAIN` is configured but `DASHBOARD_PUBLIC_URL` is empty. You'll need to configure `DASHBOARD_PUBLIC_URL`."
     exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$HERCULES_PUBLIC_URL" == "" ]; then
     echo "❌ `SSL_DOMAIN` is configured but `HERCULES_PUBLIC_URL` is empty. You'll need to configure `HERCULES_PUBLIC_URL`."
@@ -92,14 +99,11 @@ prepareTerraform() {
   elif [ "$SSL_DOMAIN" != "" -a "$HERMES_PUBLIC_URL" == "" ]; then
     echo "❌ `SSL_DOMAIN` is configured but `HERMES_PUBLIC_URL` is empty. You'll need to configure `HERMES_PUBLIC_URL`."
     exit 1
-  elif [ "$SSL_DOMAIN" != "" -a "$REST_API_PUBLIC_URL" == "" ]; then
-    echo "❌ `SSL_DOMAIN` is configured but `REST_API_PUBLIC_URL` is empty. You'll need to configure `REST_API_PUBLIC_URL`."
-    exit 1
-  elif [ "$SSL_DOMAIN" != "" -a "$WEB_APP_PUBLIC_URL" == "" ]; then
-    echo "❌ `SSL_DOMAIN` is configured but `WEB_APP_PUBLIC_URL` is empty. You'll need to configure `WEB_APP_PUBLIC_URL`."
-    exit 1
   elif [ "$SSL_DOMAIN" != "" -a "$PASSPORT_PUBLIC_URL" == "" ]; then
     echo "❌ `SSL_DOMAIN` is configured but `PASSPORT_PUBLIC_URL` is empty. You'll need to configure `PASSPORT_PUBLIC_URL`."
+    exit 1
+  elif [ "$SSL_DOMAIN" != "" -a "$ZEUS_PUBLIC_URL" == "" ]; then
+    echo "❌ `SSL_DOMAIN` is configured but `ZEUS_PUBLIC_URL` is empty. You'll need to configure `ZEUS_PUBLIC_URL`."
     exit 1
   fi
 
@@ -226,11 +230,12 @@ updateDockerVariables() {
   # if the user provies a custom domain, we don't want to override their public url settings
   if [ "$SSL_DOMAIN" == "" ]; then
     sed -i "/^CERBERUS_PUBLIC_URL=/c\CERBERUS_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.cerberus')" $1
+    sed -i "/^CONNECT_PUBLIC_URL=/c\CONNECT_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["connect"]')" $1
+    sed -i "/^DASHBOARD_PUBLIC_URL=/c\DASHBOARD_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["dashboard"]')" $1
     sed -i "/^HERCULES_PUBLIC_URL=/c\HERCULES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hercules')" $1
     sed -i "/^HERMES_PUBLIC_URL=/c\HERMES_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.hermes')" $1
-    sed -i "/^REST_API_PUBLIC_URL=/c\REST_API_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["rest-api"]')" $1
-    sed -i "/^WEB_APP_PUBLIC_URL=/c\WEB_APP_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["web-app"]')" $1
     sed -i "/^PASSPORT_PUBLIC_URL=/c\PASSPORT_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value.passport')" $1
+    sed -i "/^ZEUS_PUBLIC_URL=/c\ZEUS_PUBLIC_URL=http://$(echo $TERRAFORM_OUTPUT | jq -r '.albs.value["zeus"]')" $1
   fi
 
   sed -i "/^REDIS_URL=/c\REDIS_URL=$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.host'):$(echo $TERRAFORM_OUTPUT | jq -r '.elasticache.value.port')" $1
