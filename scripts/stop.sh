@@ -18,11 +18,12 @@ if [[ "$SERVICE" == "" ]]; then
   docker-compose -f $ROOT_DIR/.cache/docker-compose.yml down
 
   (docker rm paragon-cerberus)
+  (docker rm paragon-connect)
+  (docker rm paragon-dashboard)
   (docker rm paragon-hercules)
   (docker rm paragon-hermes)
-  (docker rm paragon-rest-api)
-  (docker rm paragon-web-app)
   (docker rm paragon-passport)
+  (docker rm paragon-zeus)
 else
   (docker stop paragon-$SERVICE && docker rm paragon-$SERVICE)
 fi

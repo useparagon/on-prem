@@ -127,11 +127,12 @@ variable "rds_instance_class" {
 locals {
   microservices = {
     "cerberus"  = 1700
+    "connect"   = 1707
+    "dashboard" = 1704
     "hercules"  = 1701
     "hermes"    = 1702
     "passport"  = 1706
-    "rest-api"  = 1703
-    "web-app"   = 1704
+    "zeus"      = 1703
   }
 
   microservice_acls = {
@@ -142,11 +143,12 @@ locals {
   ec2s = {
     web         = [
       "cerberus",
+      "connect",
+      "dashboard",
       "hercules",
       "hermes",
       "passport",
-      "rest-api",
-      "web-app",
+      "zeus",
     ]
   }
 
